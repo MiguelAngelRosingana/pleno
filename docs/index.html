@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#0A0C12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>try{var t=localStorage.getItem("betia-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;if(t==="light"){var m=document.querySelector('meta[name=theme-color]');if(m)m.content="#EAF0FA"}}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -624,6 +625,59 @@ body{overflow-x:hidden;overscroll-behavior-x:none}
   .stabs button span{font-size:.72rem;font-weight:600}
 }
 @media (min-width:901px){.fsel{display:flex;gap:8px;flex-wrap:wrap}}
+
+/* ---------- Modo claro (azul y claro) ---------- */
+:root[data-theme="light"]{
+  --paper:#EAF0FA; --card:#FFFFFF; --card-2:#F2F6FD; --ink:#0E1B33; --muted:#4D5C78; --faint:#7886A1; --line:rgba(14,27,51,.11); --line-2:rgba(14,27,51,.06);
+  --side:#FFFFFF; --side-2:#E9F0FC; --side-ink:#0E1B33; --side-muted:#667692; --side-line:rgba(14,27,51,.09);
+  --accent:#2F5BEA; --accent-text:#2149C4; --accent-ink:#FFFFFF; --accent-soft:rgba(47,91,234,.11); --accent-line:rgba(47,91,234,.34);
+  --won:#0F9460; --won-soft:rgba(15,148,96,.12); --won-hi:#0F9460;
+  --lost:#D13B55; --lost-soft:rgba(209,59,85,.10); --lost-hi:#D13B55;
+  --pend:#B06C00; --pend-soft:rgba(224,150,20,.14);
+  --void:#6B7A96; --void-soft:rgba(107,122,150,.14);
+  --shadow-1:0 1px 2px rgba(14,27,51,.06),0 10px 28px rgba(33,73,196,.08);
+  --shadow-2:0 24px 60px rgba(14,27,51,.22);
+  color-scheme:light;
+}
+[data-theme="light"] body{background:linear-gradient(180deg,#DDE8FA 0,#EAF0FA 380px),var(--paper)}
+[data-theme="light"] .side{box-shadow:1px 0 0 var(--side-line)}
+[data-theme="light"] .nav button:hover{background:var(--side-2)}
+[data-theme="light"] .nav button[aria-current="page"]{background:var(--accent-soft);color:var(--accent-text);box-shadow:none}
+[data-theme="light"] .nav button[aria-current="page"] svg{color:var(--accent-text)}
+[data-theme="light"] .nav .badge{background:var(--side-2);color:var(--side-ink)}
+[data-theme="light"] .mark{box-shadow:0 6px 18px rgba(47,91,234,.28)}
+[data-theme="light"] .btn:hover{background:var(--card-2);border-color:var(--faint)}
+[data-theme="light"] .btn.primary:hover{background:#4A72F5}
+[data-theme="light"] .btn.won,[data-theme="light"] .btn.lost,[data-theme="light"] .rset button[aria-pressed="true"].w,[data-theme="light"] .rset button[aria-pressed="true"].l,[data-theme="light"] .rset button[aria-pressed="true"].v,[data-theme="light"] .segf.status button[aria-pressed="true"][data-v="won"],[data-theme="light"] .segf.status button[aria-pressed="true"][data-v="lost"],[data-theme="light"] .segf.status button[aria-pressed="true"][data-v="pending"],[data-theme="light"] .form span,[data-theme="light"] .suspect .ic{color:#fff}
+[data-theme="light"] .seg button[aria-pressed="true"],[data-theme="light"] .stabs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+[data-theme="light"] .stabs button[aria-pressed="true"] span{color:rgba(255,255,255,.7)}
+[data-theme="light"] .seg,[data-theme="light"] .segf{background:var(--card-2)}
+[data-theme="light"] .segf button[aria-pressed="true"]{background:#fff;box-shadow:0 1px 3px rgba(14,27,51,.16)}
+[data-theme="light"] .field input,[data-theme="light"] .field select,[data-theme="light"] .field textarea,[data-theme="light"] .inline input,[data-theme="light"] .selrow input,[data-theme="light"] .selrow select,[data-theme="light"] .quick textarea{background:#fff}
+[data-theme="light"] .lrow:hover,[data-theme="light"] .hl button:hover{background:rgba(14,27,51,.04)}
+[data-theme="light"] .lday,[data-theme="light"] .fact,[data-theme="light"] .tk-nums,[data-theme="light"] .tkx .tk-nums,[data-theme="light"] .hl button,[data-theme="light"] .rep-nums div{background:rgba(14,27,51,.04)}
+[data-theme="light"] .overlay,[data-theme="light"] .scrim{background:rgba(14,27,51,.42)}
+[data-theme="light"] .toast,[data-theme="light"] .tip{background:#0E1B33;color:#fff}
+[data-theme="light"] .tbtn{color:#9DB4FF}
+[data-theme="light"] .tabbar{background:rgba(255,255,255,.92);border-top:1px solid var(--line)}
+[data-theme="light"] .drawer{box-shadow:-20px 0 60px rgba(14,27,51,.2)}
+[data-theme="light"] .h2-main{background:radial-gradient(560px 260px at 0% 0%,rgba(47,91,234,.13),transparent 70%),var(--card)}
+[data-theme="light"] .kpi.hero{background:linear-gradient(135deg,rgba(47,91,234,.14),rgba(47,91,234,.03)),var(--card);color:var(--ink)}
+[data-theme="light"] .rep-hero,[data-theme="light"] .welcome{background:radial-gradient(620px 260px at 100% 0%,rgba(47,91,234,.14),transparent 70%),var(--card);border:1px solid var(--line)}
+[data-theme="light"] .tkw{--tk:#FFFFFF;filter:drop-shadow(0 14px 24px rgba(14,27,51,.16))}
+[data-theme="light"] .tkx{background:var(--tk)}
+[data-theme="light"] .sx-stamp{background:rgba(255,255,255,.75)}
+[data-theme="light"] .slip{background:#fff;box-shadow:0 18px 40px rgba(14,27,51,.14)}
+[data-theme="light"] .h2-cta{background:none}
+[data-theme="light"] .sug-c{background:var(--card-2)}
+[data-theme="light"] .ttl{background:color-mix(in srgb,var(--paper) 88%,transparent)}
+
+/* Botón de modo claro/oscuro */
+.theme-btn{display:none;margin-left:auto;align-self:center}
+@media (max-width:900px){.theme-btn{display:inline-flex}}
+
+/* Móvil: nada puede ensanchar la página (recorta sin crear scroll, así el título fijo sigue funcionando) */
+@supports (overflow:clip){@media (max-width:900px){.app,.content,.main{overflow-x:clip}.tools{box-sizing:border-box;max-width:100%}}}
 </style>
 
 <div class="app">
@@ -635,6 +689,7 @@ body{overflow-x:hidden;overscroll-behavior-x:none}
       <button type="button" id="side-move"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></svg>Depósito o retirada</button>
       <button type="button" id="side-export"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Exportar CSV</button>
       <button type="button" id="side-settings"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Ajustes</button>
+      <button type="button" id="side-theme"></button>
     </nav>
     <div class="side-card" id="side-limit"></div>
     <div class="auto" id="side-auto"></div>
@@ -643,7 +698,7 @@ body{overflow-x:hidden;overscroll-behavior-x:none}
   <div class="content">
     <header class="topbar">
       <div class="in">
-        <div class="ttl"><h1 id="v-title">Panel</h1><p id="v-sub">Resumen de tu actividad</p></div>
+        <div class="ttl"><h1 id="v-title">Panel</h1><p id="v-sub">Resumen de tu actividad</p><button class="btn sm icon theme-btn" type="button" id="top-theme"></button></div>
         <div class="tools">
           <div class="seg" id="period" role="group" aria-label="Periodo">
             <button type="button" data-v="7">7D</button><button type="button" data-v="30">30D</button><button type="button" data-v="month">Mes</button><button type="button" data-v="year">Año</button><button type="button" data-v="all">Todo</button>
@@ -686,6 +741,9 @@ const IC={panel:SVG('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="1
   x:SVG('<path d="M6 6l12 12M18 6 6 18"/>'),
   edit:SVG('<path d="M4 20h4L19 9l-4-4L4 16z"/>'),
   copy:SVG('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+  sun:SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+  moon:SVG('<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>'),
+  share:SVG('<path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>'),
   trash:SVG('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
   undo:SVG('<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>'),
   chev:SVG('<path d="m9 6 6 6-6 6"/>'),
@@ -1196,9 +1254,73 @@ function renderCaja(){
 function barcodeSVG(seed){const s=String(seed||"x");let h=2166136261>>>0,x=0;const bars=[];
   for(let i=0;i<46;i++){h=Math.imul(h^(s.charCodeAt(i%s.length)+i*7),16777619)>>>0;const w=1+(h%3),g=1+((h>>>4)%2);bars.push(`<rect x="${x}" y="0" width="${w}" height="40"/>`);x+=w+g}
   return `<svg viewBox="0 0 ${x} 40" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">${bars.join("")}</svg>`}
+/* ---------- Tema claro / oscuro ---------- */
+function curTheme(){return document.documentElement.dataset.theme==="light"?"light":"dark"}
+function renderThemeBtns(){const light=curTheme()==="light",ic=light?IC.moon:IC.sun;
+  const s=$("side-theme");if(s)s.innerHTML=ic.replace('<svg','<svg class="i"')+(light?"Modo oscuro":"Modo claro");
+  const t=$("top-theme");if(t){t.innerHTML=ic;t.setAttribute("aria-label",light?"Cambiar a modo oscuro":"Cambiar a modo claro")}
+  const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",light?"#EAF0FA":"#0A0C12")}
+function toggleTheme(){const t=curTheme()==="light"?"dark":"light";document.documentElement.dataset.theme=t;try{localStorage.setItem("betia-theme",t)}catch(_){}renderThemeBtns()}
+
+/* ---------- Compartir el boleto como imagen ---------- */
+async function ticketImage(b){
+  try{await Promise.all([document.fonts.load("600 30px Geist"),document.fonts.load('500 20px "Geist Mono"')])}catch(_){}
+  const sels=b.selections||[],r=ret(b),p=profitOf(b),W=720,M=26,P=36,F="Geist, system-ui, -apple-system, sans-serif",FM='"Geist Mono", ui-monospace, Menlo, monospace';
+  const C={card:"#181D2C",ink:"#F4F5F8",gray:"#93A0BA",won:"#34D399",lost:"#FB7185",pend:"#FBBF24",void:"#8A8A95",line:"rgba(255,255,255,.1)"};
+  const pc=document.createElement("canvas").getContext("2d");
+  const wrap=(t,font,mw)=>{pc.font=font;const out=[];let cur="";for(const w of String(t).split(" ")){const n=cur?cur+" "+w:w;if(pc.measureText(n).width>mw&&cur){out.push(cur);cur=w}else cur=n}if(cur)out.push(cur);return out.slice(0,3)};
+  const title=b.title||(sels[0]?sels[0].event:"Apuesta"),tl=wrap(title,"600 34px "+F,W-2*M-2*P-180);
+  const ct=M,brandY=ct+54,titleY=ct+112,metaY=titleY+(tl.length-1)*42+46,perf1=metaY+34,selTop=perf1+10,perf2=selTop+sels.length*80+10,numLab=perf2+48,numVal=perf2+96,numsEnd=perf2+124,barTop=numsEnd+6,barH=58,idY=barTop+barH+28,footY=idY+34,cardBottom=footY+74,H=cardBottom+M;
+  const dpr=2,c=document.createElement("canvas");c.width=W*dpr;c.height=H*dpr;const x=c.getContext("2d");x.scale(dpr,dpr);
+  const rr=(X,Y,w,h,rad)=>{x.beginPath();x.moveTo(X+rad,Y);x.arcTo(X+w,Y,X+w,Y+h,rad);x.arcTo(X+w,Y+h,X,Y+h,rad);x.arcTo(X,Y+h,X,Y,rad);x.arcTo(X,Y,X+w,Y,rad);x.closePath()};
+  const fit=(t,font,mw)=>{x.font=font;let s=String(t);if(x.measureText(s).width<=mw)return s;while(s.length>1&&x.measureText(s+"…").width>mw)s=s.slice(0,-1);return s+"…"};
+  const bgc="#0B1020",g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,"#0A0C12");g.addColorStop(1,"#121A36");x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.save();x.shadowColor="rgba(0,0,0,.5)";x.shadowBlur=40;x.shadowOffsetY=16;rr(M,ct,W-2*M,cardBottom-ct,28);x.fillStyle=C.card;x.fill();x.restore();
+  x.save();rr(M,ct,W-2*M,cardBottom-ct,28);x.clip();
+  const lg=x.createLinearGradient(0,ct,0,ct+260);lg.addColorStop(0,"rgba(255,255,255,.05)");lg.addColorStop(1,"rgba(255,255,255,0)");x.fillStyle=lg;x.fillRect(M,ct,W-2*M,260);
+  // cabecera
+  x.fillStyle=C.gray;x.font="600 21px "+FM;x.textBaseline="alphabetic";try{x.letterSpacing="3px"}catch(_){}x.fillText(String(b.book||"").toUpperCase(),M+P,brandY);
+  x.textAlign="right";x.fillText("Nº "+String(b.id||"").slice(-8).toUpperCase(),W-M-P,brandY);x.textAlign="left";try{x.letterSpacing="0px"}catch(_){}
+  x.fillStyle=C.ink;x.font="600 34px "+F;tl.forEach((l,i)=>x.fillText(l,M+P,titleY+i*42));
+  x.fillStyle=C.gray;x.font="500 22px "+FM;x.fillText([dayLabel(b.date),b.type||"Simple",sels.length>1?sels.length+" sel.":""].filter(Boolean).join(" · "),M+P,metaY);
+  // sello
+  const sc=C[b.status==="cashout"?"void":b.status]||C.gray,st=(STATUS[b.status]||"").toUpperCase();
+  x.save();x.translate(W-M-P-62,ct+104);x.rotate(-8*Math.PI/180);try{x.letterSpacing="3px"}catch(_){}x.font="700 22px "+FM;const tw=x.measureText(st).width;
+  rr(-tw/2-14,-26,tw+28,44,10);x.fillStyle="rgba(0,0,0,.25)";x.fill();x.lineWidth=3;x.strokeStyle=sc;x.stroke();x.fillStyle=sc;x.textAlign="center";x.fillText(st,0,8);x.restore();
+  // perforaciones
+  const perf=y=>{x.save();x.strokeStyle=C.line;x.lineWidth=2.5;x.setLineDash([9,8]);x.beginPath();x.moveTo(M+8,y);x.lineTo(W-M-8,y);x.stroke();x.restore();x.fillStyle=bgc;x.beginPath();x.arc(M,y,14,0,7);x.fill();x.beginPath();x.arc(W-M,y,14,0,7);x.fill()};
+  perf(perf1);
+  // selecciones
+  sels.forEach((s,i)=>{const ry=selTop+i*80,col=C[s.result==="won"?"won":s.result==="lost"?"lost":s.result==="void"?"void":"line"]||C.line;
+    x.fillStyle=col;rr(M,ry+10,6,58,3);x.fill();
+    if(s.result==="won"||s.result==="lost"){const gl=x.createLinearGradient(M,0,W-M,0);gl.addColorStop(0,s.result==="won"?"rgba(52,211,153,.13)":"rgba(251,113,133,.13)");gl.addColorStop(.7,"rgba(0,0,0,0)");x.fillStyle=gl;x.fillRect(M,ry+4,W-2*M,70)}
+    x.fillStyle=C.ink;x.fillText(fit(s.event,"600 26px "+F,W-2*M-2*P-130),M+P,ry+34);
+    x.fillStyle=C.gray;x.fillText(fit([s.sport,s.competition,s.pick].filter(Boolean).join(" · "),"500 21px "+F,W-2*M-2*P-130),M+P,ry+62);
+    x.font="600 26px "+F;x.fillStyle=C.ink;x.font="600 30px "+FM;x.textAlign="right";x.fillText(odd(s.odds),W-M-P,ry+40);
+    if(s.result==="won"||s.result==="lost"){x.fillStyle=col;x.font="700 22px "+F;x.fillText(s.result==="won"?"✓":"✕",W-M-P,ry+66)}x.textAlign="left";
+    if(i<sels.length-1){x.save();x.strokeStyle="rgba(255,255,255,.07)";x.setLineDash([6,7]);x.lineWidth=1.5;x.beginPath();x.moveTo(M+P,ry+78);x.lineTo(W-M-P,ry+78);x.stroke();x.restore()}});
+  perf(perf2);
+  // cifras
+  const cw=(W-2*M-2*P)/3,cols=[[b.freebet?"APUESTA GRATIS":"STAKE",eur(+b.stake),C.ink],["CUOTA"+(b.boost?" + BOOSTER":""),odd(b.odds)+(b.boost?"  +"+dec(b.boost)+"%":""),C.ink],[r==null?"POSIBLE COBRO":"RESULTADO",r==null?eur(winAmt(b)):sgn(p),r==null?C.ink:(p>=0?C.won:C.lost)]];
+  cols.forEach(([l,v,col],i)=>{const cx=M+P+i*cw;x.fillStyle=C.gray;x.font="600 17px "+FM;try{x.letterSpacing="2px"}catch(_){}x.fillText(l,cx,numLab);try{x.letterSpacing="0px"}catch(_){}x.fillStyle=col;x.font="600 36px "+F;x.fillText(fit(v,"600 36px "+F,cw-8),cx,numVal)});
+  // código de barras
+  let h=2166136261>>>0,bx=0;const seed=String(b.id||"x"),bars=[];for(let i=0;i<46;i++){h=Math.imul(h^(seed.charCodeAt(i%seed.length)+i*7),16777619)>>>0;const w=1+(h%3),gp=1+((h>>>4)%2);bars.push([bx,w]);bx+=w+gp}
+  const bw=W-2*M-2*P-60,sx=bw/bx;x.fillStyle="rgba(147,160,186,.85)";bars.forEach(([px,w])=>x.fillRect(M+P+30+px*sx,barTop,Math.max(1.2,w*sx),barH));
+  x.fillStyle=C.gray;x.font="500 17px "+FM;try{x.letterSpacing="7px"}catch(_){}x.textAlign="center";x.fillText(String(b.id||"").slice(-8).toUpperCase(),W/2,idY);x.textAlign="left";try{x.letterSpacing="0px"}catch(_){}
+  // marca
+  const k=44/64,lx=M+P,ly=footY;x.save();x.translate(lx,ly);x.scale(k,k);const lg2=x.createLinearGradient(0,0,64,64);lg2.addColorStop(0,"#3F6BFF");lg2.addColorStop(1,"#16297F");rr(0,0,64,64,16);x.fillStyle=lg2;x.fill();
+  x.fillStyle="#fff";rr(16,12,8.5,40,4.25);x.fill();x.beginPath();x.arc(35,37,10,0,7);x.lineWidth=8.5;x.strokeStyle="#fff";x.stroke();x.restore();
+  x.fillStyle=C.ink;x.font="600 28px "+F;x.fillText("BetIA",lx+58,ly+31);x.fillStyle=C.gray;x.font="500 20px "+F;x.textAlign="right";x.fillText("Mis apuestas, con datos",W-M-P,ly+30);x.textAlign="left";
+  x.restore();
+  return new Promise(res=>c.toBlob(res,"image/png"))}
+async function shareTicket(b){
+  try{const blob=await ticketImage(b);if(!blob)throw 0;const file=new File([blob],"boleto-betia.png",{type:"image/png"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"Mi boleto"});return}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="boleto-betia.png";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast("Imagen del boleto guardada")}
+  catch(e){if(e&&e.name==="AbortError")return;toast("No se pudo crear la imagen",true)}}
 function drawerHTML(b){const sels=b.selections||[],r=ret(b),p=profitOf(b),conf=S.confirm===b.id;
   return `<div class="scrim" data-close></div><aside class="drawer${S.anim?" anim":""}" role="dialog" aria-modal="true" aria-label="Detalle del boleto">
-    <div class="dr-h"><span class="t">Boleto</span><div style="display:flex;gap:6px"><button class="btn sm icon" type="button" data-d="dup" title="Duplicar" aria-label="Duplicar">${IC.copy}</button><button class="btn sm icon" type="button" data-d="edit" title="Editar" aria-label="Editar">${IC.edit}</button><button class="btn sm icon" type="button" data-close aria-label="Cerrar">${IC.x}</button></div></div>
+    <div class="dr-h"><span class="t">Boleto</span><div style="display:flex;gap:6px"><button class="btn sm icon" type="button" data-d="share" title="Compartir como imagen" aria-label="Compartir como imagen">${IC.share}</button><button class="btn sm icon" type="button" data-d="dup" title="Duplicar" aria-label="Duplicar">${IC.copy}</button><button class="btn sm icon" type="button" data-d="edit" title="Editar" aria-label="Editar">${IC.edit}</button><button class="btn sm icon" type="button" data-close aria-label="Cerrar">${IC.x}</button></div></div>
     <div class="dr-b">
       <div class="tkw"><div class="ticket tkx">
         <div class="sx-top">
@@ -1296,6 +1418,7 @@ document.addEventListener("click",async e=>{
   const sl=t.closest("[data-sel]");if(sl){const i=+sl.dataset.sel,val=sl.dataset.v;const sels=(b.selections||[]).map((x,j)=>j===i?{...x,result:x.result===val?"pending":val}:x);
     const nb=derive({...b,selections:sels});if(await put("bets","bets",nb)&&nb.status!==b.status)toast("Boleto "+STATUS[nb.status].toLowerCase(),false,()=>put("bets","bets",b));return}
   const d=t.closest("[data-d]");if(!d)return;const a=d.dataset.d;
+  if(a==="share"){shareTicket(b);return}
   if(a==="edit"){openBetForm(b);return}
   if(a==="dup"){const {id,created,settled,payout,...rest}=b;openBetForm({...rest,date:today(),status:"pending",payout:null,selections:(b.selections||[]).map(x=>({...x,result:"pending"}))},true);return}
   if(a==="del"){S.confirm=b.id;renderDrawer();return}
@@ -1310,7 +1433,7 @@ document.addEventListener("change",async e=>{const ci=e.target.closest&&e.target
   if(ci){const b=S.drawer&&S.bets.find(x=>x.id===S.drawer);if(!b)return;const i=+ci.dataset.closeI,v=num(ci.value);const sels=(b.selections||[]).map((x,j)=>j===i?{...x,close:v&&v>=1?v:null}:x);if(await put("bets","bets",{...b,selections:sels}))toast("Cuota de cierre guardada");return}
   const id=e.target.id;if(id==="f-tag"){S.tag=e.target.value;render();return}if(id==="f-book"){S.book=e.target.value;render()}else if(id==="f-origin"){S.origin=e.target.value;render()}else if(id==="f-sort"){S.sort=e.target.value;render()}});
 let qT;$("q").addEventListener("input",()=>{clearTimeout(qT);qT=setTimeout(render,160)});
-$("top-new").addEventListener("click",()=>openBetForm());$("side-new").addEventListener("click",()=>openBetForm());
+$("top-new").addEventListener("click",()=>openBetForm());$("side-theme").addEventListener("click",toggleTheme);$("top-theme").addEventListener("click",toggleTheme);renderThemeBtns();$("side-new").addEventListener("click",()=>openBetForm());
 $("side-move").addEventListener("click",()=>openMoveForm());$("side-export").addEventListener("click",exportCSV);$("side-settings").addEventListener("click",openSettings);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("overlay").hidden)closeOverlay();else if(S.drawer)closeDrawer();return}
   const tag=(document.activeElement&&document.activeElement.tagName)||"";if(/INPUT|TEXTAREA|SELECT/.test(tag)||e.metaKey||e.ctrlKey||e.altKey||!$("overlay").hidden)return;

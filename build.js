@@ -11,6 +11,7 @@ const head = `<!doctype html>
 <meta name="theme-color" content="#0A0C12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>try{var t=localStorage.getItem("betia-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;if(t==="light"){var m=document.querySelector('meta[name=theme-color]');if(m)m.content="#EAF0FA"}}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">

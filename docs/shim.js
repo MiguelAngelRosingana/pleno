@@ -85,6 +85,12 @@
         <button type="button" id="su" style="background:none;border:0;color:#A3A3AD;font:500 14px Geist,sans-serif;cursor:pointer">Crear cuenta</button>
         <div id="m" style="min-height:1.2em;text-align:center;color:#FB7185;font-size:14px"></div></form>`;
       document.body.appendChild(el);
+      if (document.documentElement.dataset.theme === "light") { // data-theme-login
+        el.style.background = "radial-gradient(600px 320px at 50% 0%,rgba(47,91,234,.18),transparent 70%),#EAF0FA"; el.style.color = "#0E1B33";
+        const fm = el.querySelector("form"); fm.style.background = "#fff"; fm.style.borderColor = "rgba(14,27,51,.1)"; fm.style.boxShadow = "0 24px 60px rgba(14,27,51,.14)";
+        el.querySelectorAll("input").forEach(i => { i.style.background = "#fff"; i.style.color = "#0E1B33"; i.style.borderColor = "rgba(14,27,51,.16)"; });
+        el.querySelector("p").style.color = "#4D5C78"; el.querySelector("#su").style.color = "#4D5C78";
+      }
       const f = el.querySelector("form"), m = el.querySelector("#m");
       const go = async (signup) => {
         m.textContent = "";
