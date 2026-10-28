@@ -678,6 +678,18 @@ body{overflow-x:hidden;overscroll-behavior-x:none}
 
 /* Móvil: nada puede ensanchar la página (recorta sin crear scroll, así el título fijo sigue funcionando) */
 @supports (overflow:clip){@media (max-width:900px){.app,.content,.main{overflow-x:clip}.tools{box-sizing:border-box;max-width:100%}}}
+
+/* Hoja de herramientas (móvil) */
+.tools-btn{display:none;margin-left:auto;align-self:center}
+@media (max-width:900px){.tools-btn{display:inline-flex}.theme-btn{margin-left:0}}
+.overlay:has(.toolsheet){align-items:flex-end;padding:0}
+.toolsheet{width:min(520px,100%);border-radius:22px 22px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+.tl-list{display:flex;flex-direction:column;padding:6px 10px}
+.tl-item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:13px 10px;border-radius:12px;font:600 .98rem var(--f-body);cursor:pointer}
+.tl-item:hover,.tl-item:active{background:var(--card-2)}
+.tl-item>svg{width:22px;height:22px;color:var(--accent-text);flex:none}
+.tl-item small{display:block;font-weight:400;color:var(--muted);font-size:.8rem;margin-top:1px}
+.tl-info{display:flex;flex-direction:column;gap:10px;padding:4px 16px 18px}
 </style>
 
 <div class="app">
@@ -698,7 +710,7 @@ body{overflow-x:hidden;overscroll-behavior-x:none}
   <div class="content">
     <header class="topbar">
       <div class="in">
-        <div class="ttl"><h1 id="v-title">Panel</h1><p id="v-sub">Resumen de tu actividad</p><button class="btn sm icon theme-btn" type="button" id="top-theme"></button></div>
+        <div class="ttl"><h1 id="v-title">Panel</h1><p id="v-sub">Resumen de tu actividad</p><button class="btn sm icon tools-btn" type="button" id="top-tools" aria-label="Herramientas"></button><button class="btn sm icon theme-btn" type="button" id="top-theme"></button></div>
         <div class="tools">
           <div class="seg" id="period" role="group" aria-label="Periodo">
             <button type="button" data-v="7">7D</button><button type="button" data-v="30">30D</button><button type="button" data-v="month">Mes</button><button type="button" data-v="year">Año</button><button type="button" data-v="all">Todo</button>
@@ -741,6 +753,7 @@ const IC={panel:SVG('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="1
   x:SVG('<path d="M6 6l12 12M18 6 6 18"/>'),
   edit:SVG('<path d="M4 20h4L19 9l-4-4L4 16z"/>'),
   copy:SVG('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+  tools:SVG('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'),
   sun:SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
   moon:SVG('<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>'),
   share:SVG('<path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>'),
@@ -1318,6 +1331,16 @@ async function shareTicket(b){
     if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"Mi boleto"});return}
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="boleto-betia.png";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast("Imagen del boleto guardada")}
   catch(e){if(e&&e.name==="AbortError")return;toast("No se pudo crear la imagen",true)}}
+/* ---------- Herramientas en móvil (el menú lateral no existe ahí) ---------- */
+function openTools(){const light=curTheme()==="light";
+  const it=(k,ic,t,s)=>`<button class="tl-item" type="button" data-tool="${k}">${ic}<span>${t}${s?`<small>${s}</small>`:""}</span></button>`;
+  openOverlay(`<div class="sheet toolsheet" role="dialog" aria-label="Herramientas"><div class="sheet-h"><h2>Herramientas</h2><button class="btn icon" type="button" id="x" aria-label="Cerrar">${IC.x}</button></div>
+    <div class="tl-list">${it("new",IC.plus,"Nueva apuesta","Pega las selecciones o lee una captura")}${it("move",IC.caja,"Depósito o retirada","Apunta el dinero que entra y sale")}${it("export",IC.informe,"Exportar CSV","Para Power BI o Excel")}${it("settings",IC.tools,"Ajustes","Límite mensual, stake y casa habitual")}${it("theme",light?IC.moon:IC.sun,light?"Modo oscuro":"Modo claro","Cambia el aspecto de la app")}</div>
+    <div class="tl-info"><div class="side-card">${$("side-limit").innerHTML}</div><div class="auto">${$("side-auto").innerHTML}</div></div></div>`);
+  $("x").onclick=closeOverlay}
+$("overlay").addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-tool]");if(!t)return;const a=t.dataset.tool;
+  if(a==="theme"){toggleTheme();openTools();return}
+  closeOverlay();if(a==="new")openBetForm();else if(a==="move")openMoveForm();else if(a==="export")exportCSV();else if(a==="settings")openSettings()});
 function drawerHTML(b){const sels=b.selections||[],r=ret(b),p=profitOf(b),conf=S.confirm===b.id;
   return `<div class="scrim" data-close></div><aside class="drawer${S.anim?" anim":""}" role="dialog" aria-modal="true" aria-label="Detalle del boleto">
     <div class="dr-h"><span class="t">Boleto</span><div style="display:flex;gap:6px"><button class="btn sm icon" type="button" data-d="share" title="Compartir como imagen" aria-label="Compartir como imagen">${IC.share}</button><button class="btn sm icon" type="button" data-d="dup" title="Duplicar" aria-label="Duplicar">${IC.copy}</button><button class="btn sm icon" type="button" data-d="edit" title="Editar" aria-label="Editar">${IC.edit}</button><button class="btn sm icon" type="button" data-close aria-label="Cerrar">${IC.x}</button></div></div>
@@ -1433,7 +1456,7 @@ document.addEventListener("change",async e=>{const ci=e.target.closest&&e.target
   if(ci){const b=S.drawer&&S.bets.find(x=>x.id===S.drawer);if(!b)return;const i=+ci.dataset.closeI,v=num(ci.value);const sels=(b.selections||[]).map((x,j)=>j===i?{...x,close:v&&v>=1?v:null}:x);if(await put("bets","bets",{...b,selections:sels}))toast("Cuota de cierre guardada");return}
   const id=e.target.id;if(id==="f-tag"){S.tag=e.target.value;render();return}if(id==="f-book"){S.book=e.target.value;render()}else if(id==="f-origin"){S.origin=e.target.value;render()}else if(id==="f-sort"){S.sort=e.target.value;render()}});
 let qT;$("q").addEventListener("input",()=>{clearTimeout(qT);qT=setTimeout(render,160)});
-$("top-new").addEventListener("click",()=>openBetForm());$("side-theme").addEventListener("click",toggleTheme);$("top-theme").addEventListener("click",toggleTheme);renderThemeBtns();$("side-new").addEventListener("click",()=>openBetForm());
+$("top-new").addEventListener("click",()=>openBetForm());$("side-theme").addEventListener("click",toggleTheme);$("top-theme").addEventListener("click",toggleTheme);$("top-tools").innerHTML=IC.tools;$("top-tools").addEventListener("click",openTools);renderThemeBtns();$("side-new").addEventListener("click",()=>openBetForm());
 $("side-move").addEventListener("click",()=>openMoveForm());$("side-export").addEventListener("click",exportCSV);$("side-settings").addEventListener("click",openSettings);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("overlay").hidden)closeOverlay();else if(S.drawer)closeDrawer();return}
   const tag=(document.activeElement&&document.activeElement.tagName)||"";if(/INPUT|TEXTAREA|SELECT/.test(tag)||e.metaKey||e.ctrlKey||e.altKey||!$("overlay").hidden)return;
