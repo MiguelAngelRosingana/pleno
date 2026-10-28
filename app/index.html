@@ -543,6 +543,53 @@ h1,h2,h3{font-weight:600;letter-spacing:-.025em}
 .sug-f{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:auto;font:500 .78rem var(--f-mono);color:var(--muted)}
 .sug-note{margin-top:2px}
 .sug-busy{display:flex;flex-direction:column;gap:10px}
+
+/* Sin balanceo lateral en el móvil */
+html{overscroll-behavior-x:none}
+body{overflow-x:hidden;overscroll-behavior-x:none}
+.tablebox,.chart.flow{overscroll-behavior-x:contain}
+@media (max-width:560px){.chart.flow svg{min-width:0}}
+
+/* Boleto con forma de ticket */
+.tkw{--tk:#181D2C;display:flex;flex-direction:column;filter:drop-shadow(0 18px 30px rgba(0,0,0,.35))}
+.tkx{border:0;border-radius:18px 18px 0 0;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent 140px),var(--tk);box-shadow:none;position:relative;overflow:hidden}
+.sx-top{position:relative;padding:18px 20px 16px;display:flex;flex-direction:column;gap:10px}
+.sx-brand{display:flex;align-items:center;gap:10px;font:600 .74rem var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sx-brand .bk{margin:0}
+.sx-brand b{color:var(--ink);font-weight:600}
+.sx-no{margin-left:auto;color:var(--faint);letter-spacing:.1em}
+.sx-title{font-size:1.28rem;font-weight:600;letter-spacing:-.02em;line-height:1.22;padding-right:104px;overflow-wrap:anywhere}
+.sx-stamp{position:absolute;right:16px;top:46px;transform:rotate(-8deg);border:2px solid currentColor;border-radius:8px;padding:3px 10px;font:700 .76rem var(--f-mono);letter-spacing:.16em;text-transform:uppercase;background:rgba(0,0,0,.18)}
+.sx-stamp.won{color:var(--won)}.sx-stamp.lost{color:var(--lost)}.sx-stamp.pending{color:var(--pend)}.sx-stamp.void,.sx-stamp.cashout{color:var(--void)}
+.tkx .tk-meta{font:500 .76rem var(--f-mono);color:var(--muted)}
+.sx-perf{position:relative;border-top:2px dashed var(--line);height:0}
+.sx-perf::before,.sx-perf::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--paper)}
+.sx-perf::before{left:-10px}.sx-perf::after{right:-10px}
+.tkx .sels li{background:none;border-top:1px dashed var(--line-2);padding:12px 20px 12px 22px;position:relative}
+.tkx .sels li:first-child{border-top:0}
+.tkx .sels li::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:0 3px 3px 0;background:var(--line)}
+.tkx .sels li.won{background:linear-gradient(90deg,var(--won-soft),transparent 65%)}.tkx .sels li.won::before{background:var(--won)}
+.tkx .sels li.lost{background:linear-gradient(90deg,var(--lost-soft),transparent 65%)}.tkx .sels li.lost::before{background:var(--lost)}
+.tkx .sels li.void{background:linear-gradient(90deg,var(--void-soft),transparent 65%)}.tkx .sels li.void::before{background:var(--void)}
+.tkx .sels .e{font-weight:600;letter-spacing:-.01em}
+.tkx .sels .o{background:none;border:0;font-size:1.02rem;color:var(--ink);padding:0}
+.tkx .tk-nums{background:none;padding:16px 20px 12px}
+.sx-code{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 20px 18px;color:var(--faint)}
+.sx-code svg{width:100%;max-width:320px;height:36px;opacity:.8}
+.sx-code span{font:500 .66rem var(--f-mono);letter-spacing:.34em}
+.sx-teeth{height:14px;margin-top:-1px;background:linear-gradient(-45deg,transparent 7px,var(--tk) 0) left bottom/14px 14px repeat-x,linear-gradient(45deg,transparent 7px,var(--tk) 0) left bottom/14px 14px repeat-x}
+
+/* Boleto en juego del Panel con el mismo estilo */
+.slip{position:relative;overflow:hidden}
+.slip-f{position:relative;border-top:2px dashed var(--line);margin:14px -20px 0;padding:14px 20px 0}
+.slip-f::before,.slip-f::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--paper)}
+.slip-f::before{left:-10px}.slip-f::after{right:-10px}
+.slip .sx-code{padding:12px 0 0;margin-top:2px}
+.slip .sx-code svg{height:26px;max-width:100%}
+
+@media (max-width:560px){.tablebox{margin:0}table{font-size:.78rem}th{font-size:.58rem;letter-spacing:.05em;white-space:normal;padding:6px 4px}td{white-space:normal;padding:8px 4px;overflow-wrap:anywhere}.mini{min-width:28px}.tablebox .bk{margin-right:4px}}
+@media (max-width:560px){.tablebox .mini{display:none}.tablebox td>div{gap:4px!important}}
+@media (max-width:560px){.card-b{padding:12px 14px 16px}.card-h{padding:14px 14px 0}}
 </style>
 
 <div class="app">
@@ -761,7 +808,7 @@ function slipHTML(b){const sels=b.selections||[],w=sels.filter(x=>x.result==="wo
     <div class="slip-t">${esc(b.title||(sels[0]?sels[0].event:"Apuesta"))}</div>
     ${sels.length?`<ul>${show.map(x=>`<li><span><i class="${esc(x.result||"")}"></i>${esc(x.event)}</span><b>${odd(x.odds)}</b></li>`).join("")}</ul>${sels.length>5?`<div class="slip-more">y ${sels.length-5} selecciones más</div>`:""}`:""}
     ${sels.length>1?`<div class="slip-bar">${sels.map(x=>`<i class="${esc(x.result||"")}"></i>`).join("")}</div>`:""}
-    <div class="slip-f"><div><span>Stake · cuota</span><b>${eur(+b.stake)}</b> <span style="display:inline;letter-spacing:0;text-transform:none;font-family:var(--f-mono);font-size:.8rem">@${odd(b.odds)}${b.boost?" +"+esc(dec(b.boost))+"%":""}</span></div><div style="text-align:right"><span>${sels.length>1?w+"/"+sels.length+" acertadas · ":""}cobro</span><b class="pot">${eur(winAmt(b))}</b></div></div></button>`}
+    <div class="slip-f"><div><span>Stake · cuota</span><b>${eur(+b.stake)}</b> <span style="display:inline;letter-spacing:0;text-transform:none;font-family:var(--f-mono);font-size:.8rem">@${odd(b.odds)}${b.boost?" +"+esc(dec(b.boost))+"%":""}</span></div><div style="text-align:right"><span>${sels.length>1?w+"/"+sels.length+" acertadas · ":""}cobro</span><b class="pot">${eur(winAmt(b))}</b></div></div><div class="sx-code">${barcodeSVG(b.id)}</div></button>`}
 function hero2(o){const {all,st,pv,bal,pend,showBank,chart}=o;
   const h=new Date().getHours(),sal=h<6?"Buenas noches":h<14?"Buenos días":h<21?"Buenas tardes":"Buenas noches";
   const fecha=new Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"});
@@ -926,9 +973,9 @@ function flowBuckets(bets){const mode=S.period==="7"?"day":(S.period==="30"||S.p
   const key=ds=>{if(!ds)return null;if(mode==="month")return ds.slice(0,7);if(mode==="day")return ds;const d=new Date(ds+"T12:00:00");return iso(new Date(d.getTime()-((d.getDay()+6)%7)*864e5))};
   const lab=k=>mode==="month"?MES[+k.slice(5,7)-1]+(k.slice(0,4)!==String(new Date().getFullYear())?" "+k.slice(2,4):""):mode==="day"?DIA3[new Date(k+"T12:00:00").getDay()]+" "+(+k.slice(8)):(+k.slice(8))+" "+MES[+k.slice(5,7)-1];
   const g={};for(const b of bets){const k=key(b.date);if(!k)continue;g[k]=g[k]||{staked:0,ret:0,pend:0};const r=ret(b);if(r==null)g[k].pend+=cost(b);else{g[k].staked+=cost(b);g[k].ret+=r}}
-  return{mode,rows:Object.keys(g).sort().slice(-12).map(k=>({lab:lab(k),...g[k]}))}}
+  return{mode,rows:Object.keys(g).sort().slice(-(innerWidth<560?6:12)).map(k=>({lab:lab(k),...g[k]}))}}
 function flowChart(fb){const bk=fb.rows;if(!bk.length)return'<p class="hint">Sin apuestas en este periodo.</p>';
-  const W=760,H=250,L=58,R=10,T=26,B=28,mx=Math.max(1,...bk.flatMap(b=>[b.staked+b.pend,b.ret])),step=niceStep(mx/4),top=Math.ceil(mx/step)*step,y=v=>T+(H-T-B)*(1-v/top),bw=(W-L-R)/bk.length,w=Math.min(26,bw*.3);
+  const nr=innerWidth<560,W=nr?420:760,H=250,L=nr?46:58,R=10,T=26,B=28,mx=Math.max(1,...bk.flatMap(b=>[b.staked+b.pend,b.ret])),step=niceStep(mx/4),top=Math.ceil(mx/step)*step,y=v=>T+(H-T-B)*(1-v/top),bw=(W-L-R)/bk.length,w=Math.min(26,bw*.3);
   let g="";for(let v=0;v<=top+1e-9;v+=step)g+=`<line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--line-2)"/><text x="${L-8}" y="${(y(v)+4).toFixed(1)}" text-anchor="end">${esc(fmt0.format(v))}</text>`;
   const bars=bk.map((b,i)=>{const cx=L+i*bw+bw/2,net=b.ret-b.staked,ys=y(b.staked),yp=y(b.staked+b.pend),yr=y(b.ret);
     return `<rect x="${(cx-w-2).toFixed(1)}" y="${yp.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(0,ys-yp).toFixed(1)}" rx="4" fill="var(--accent)" opacity=".35"><title>En juego: ${esc(eur(b.pend))}</title></rect><rect x="${(cx-w-2).toFixed(1)}" y="${ys.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(0,H-B-ys).toFixed(1)}" rx="4" fill="var(--accent)"><title>Apostado y cerrado: ${esc(eur(b.staked))}</title></rect>
@@ -1108,18 +1155,28 @@ function renderCaja(){
   </div>`}
 
 /* ---------- Ficha lateral ---------- */
+/* Código de barras decorativo, distinto para cada boleto */
+function barcodeSVG(seed){const s=String(seed||"x");let h=2166136261>>>0,x=0;const bars=[];
+  for(let i=0;i<46;i++){h=Math.imul(h^(s.charCodeAt(i%s.length)+i*7),16777619)>>>0;const w=1+(h%3),g=1+((h>>>4)%2);bars.push(`<rect x="${x}" y="0" width="${w}" height="40"/>`);x+=w+g}
+  return `<svg viewBox="0 0 ${x} 40" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">${bars.join("")}</svg>`}
 function drawerHTML(b){const sels=b.selections||[],r=ret(b),p=profitOf(b),conf=S.confirm===b.id;
   return `<div class="scrim" data-close></div><aside class="drawer${S.anim?" anim":""}" role="dialog" aria-modal="true" aria-label="Detalle del boleto">
     <div class="dr-h"><span class="t">Boleto</span><div style="display:flex;gap:6px"><button class="btn sm icon" type="button" data-d="dup" title="Duplicar" aria-label="Duplicar">${IC.copy}</button><button class="btn sm icon" type="button" data-d="edit" title="Editar" aria-label="Editar">${IC.edit}</button><button class="btn sm icon" type="button" data-close aria-label="Cerrar">${IC.x}</button></div></div>
     <div class="dr-b">
-      <div class="ticket">
-        <div class="tk-top"><div class="tk-meta"><span class="st ${esc(b.status)}">${STATUS[b.status]}</span><span class="chip">${bk(b.book)}${esc(b.book)}</span><span class="chip">${esc(b.type||"Simple")}</span><span class="chip${b.origin==="claude"?" c":""}">${b.origin==="claude"?"Claude":"Mía"}</span>${b.freebet?'<span class="chip">Apuesta gratis</span>':""}${(b.tags||[]).map(t=>`<span class="chip">#${esc(t)}</span>`).join("")}<span>${esc(dayLabel(b.date))}</span></div>
-          <div class="tk-title">${esc(b.title||(sels[0]?sels[0].event:"Apuesta"))}</div>${b.oddsEstimated?'<span class="tagw" style="width:max-content">Cuota estimada · confírmala con el boleto en Editar</span>':""}</div>
-        <div class="tk-nums"><div class="kv"><div class="k">${b.freebet?"Apuesta gratis":"Stake"}</div><div class="v">${eur(+b.stake)}</div></div><div class="kv"><div class="k">Cuota${b.boost?" + booster":""}</div><div class="v">${odd(b.odds)}${b.boost?`<span style="font-size:.95rem;color:var(--won)"> +${esc(dec(b.boost))}%</span>`:""}</div></div>
-          <div class="kv"><div class="k">${r==null?"Posible cobro":"Resultado"}</div><div class="v ${cls(p)}">${r==null?eur(winAmt(b)):sgn(p)}</div></div></div>
+      <div class="tkw"><div class="ticket tkx">
+        <div class="sx-top">
+          <div class="sx-brand">${bk(b.book)}<b>${esc(b.book)}</b><span class="sx-no">Nº ${esc(String(b.id||"").slice(-8).toUpperCase())}</span></div>
+          <span class="sx-stamp ${esc(b.status)}">${STATUS[b.status]}</span>
+          <div class="sx-title">${esc(b.title||(sels[0]?sels[0].event:"Apuesta"))}</div>${b.oddsEstimated?'<span class="tagw" style="width:max-content">Cuota estimada · confírmala con el boleto en Editar</span>':""}
+          <div class="tk-meta"><span>${esc(dayLabel(b.date))}</span><span class="chip">${esc(b.type||"Simple")}${sels.length>1?" · "+sels.length+" sel.":""}</span><span class="chip${b.origin==="claude"?" c":""}">${b.origin==="claude"?"Claude":"Mía"}</span>${b.freebet?'<span class="chip">Apuesta gratis</span>':""}${(b.tags||[]).map(t=>`<span class="chip">#${esc(t)}</span>`).join("")}</div></div>
+        <div class="sx-perf"></div>
         ${sels.length?`<ul class="sels">${sels.map((x,i)=>`<li class="${esc(x.result||"")}"><div><div class="e">${esc(x.event)}</div><div class="m">${x.sport?`<span class="sp">${esc(x.sport)}</span>`:""}${esc([x.competition,x.pick].filter(Boolean).join(" · "))}</div></div><span class="o">${odd(x.odds)}</span>
           <div class="rset" role="group" aria-label="Resultado de la selección"><button class="w" type="button" data-sel="${i}" data-v="won" aria-pressed="${x.result==="won"}">✓ Acertada</button><button class="l" type="button" data-sel="${i}" data-v="lost" aria-pressed="${x.result==="lost"}">✕ Fallada</button><button class="v" type="button" data-sel="${i}" data-v="void" aria-pressed="${x.result==="void"}">Nula</button><label class="cl">Cierre <input data-close-i="${i}" inputmode="decimal" value="${esc(dec(x.close))}" placeholder="–" aria-label="Cuota de cierre"></label>${+x.close&&+x.odds?`<span class="clv ${+x.odds>+x.close?"up":+x.odds<+x.close?"down":""}" title="Valor frente al cierre">CLV ${pct((x.odds/x.close-1)*100)}</span>`:""}</div></li>`).join("")}</ul>`:""}
-      </div>
+        <div class="sx-perf"></div>
+        <div class="tk-nums"><div class="kv"><div class="k">${b.freebet?"Apuesta gratis":"Stake"}</div><div class="v">${eur(+b.stake)}</div></div><div class="kv"><div class="k">Cuota${b.boost?" + booster":""}</div><div class="v">${odd(b.odds)}${b.boost?`<span style="font-size:.95rem;color:var(--won)"> +${esc(dec(b.boost))}%</span>`:""}</div></div>
+          <div class="kv"><div class="k">${r==null?"Posible cobro":"Resultado"}</div><div class="v ${cls(p)}">${r==null?eur(winAmt(b)):sgn(p)}</div></div></div>
+        <div class="sx-code">${barcodeSVG(b.id)}<span>${esc(String(b.id||"").slice(-8).toUpperCase())}</span></div>
+      </div><div class="sx-teeth"></div></div>
       ${sels.length>1?'<p class="hint">Si marcas una selección como fallada, el boleto pasa a perdido. Si aciertas todas, a ganado; las nulas se descuentan de la cuota.</p>':""}
       ${b.notes?`<div class="notes">${esc(b.notes)}</div>`:""}
     </div>
