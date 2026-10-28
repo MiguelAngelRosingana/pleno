@@ -1,0 +1,1391 @@
+<title>BetIA</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: app de gestión. Menú lateral oscuro tipo videomarcador (escritorio) / barra inferior (móvil); cabecera fija con título, periodo y búsqueda; vistas Panel · Apuestas · Análisis · Caja; ficha de boleto en panel lateral. */
+/* Dirección visual: moderna y sobria. Neutros casi negros, bordes finos, Geist, un único acento violeta; verde y rosa solo para ganado y perdido. */
+:root{
+  --paper:#0A0C12; --card:#11141C; --card-2:#181C27; --ink:#F4F4F6; --muted:#A3A3AD; --faint:#74747F; --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.05);
+  --side:#080A10; --side-2:#161A25; --side-ink:#F4F4F6; --side-muted:#8A8A95; --side-line:rgba(255,255,255,.07);
+  --accent:#2F5BEA; --accent-text:#8FADFF; --accent-ink:#FFFFFF; --accent-soft:rgba(47,91,234,.18); --accent-line:rgba(47,91,234,.5);
+  --won:#34D399; --won-soft:rgba(52,211,153,.12); --won-hi:#34D399;
+  --lost:#FB7185; --lost-soft:rgba(251,113,133,.12); --lost-hi:#FB7185;
+  --pend:#FBBF24; --pend-soft:rgba(251,191,36,.12);
+  --void:#8A8A95; --void-soft:rgba(138,138,149,.14);
+  --shadow-1:0 1px 0 rgba(255,255,255,.03) inset,0 10px 30px rgba(0,0,0,.28);
+  --shadow-2:0 24px 60px rgba(0,0,0,.55);
+  --f-display:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
+button,input,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{margin:0;font-family:var(--f-display);font-weight:700;letter-spacing:.01em;text-wrap:balance}
+.num,td{font-variant-numeric:tabular-nums}
+.pos{color:var(--won)} .neg{color:var(--lost)} .muted{color:var(--muted)}
+.hint{font-size:.8rem;color:var(--muted);margin:0}
+svg.i{width:18px;height:18px;flex:none}
+
+/* ---------- Estructura ---------- */
+.app{display:grid;grid-template-columns:244px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;background:var(--side);color:var(--side-ink);display:flex;flex-direction:column;gap:22px;padding:22px 14px 18px max(14px,env(safe-area-inset-left,0px));overflow-y:auto}
+.logo{display:flex;align-items:center;gap:11px;padding:0 6px}
+.mark{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:none}
+.mark svg{width:22px;height:22px}
+.logo b{font-family:var(--f-display);font-size:1.35rem;line-height:1;display:block}
+.logo span{font-size:.72rem;color:var(--side-muted)}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav-t{font-size:.66rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--side-muted);padding:0 10px 6px}
+.nav button{display:flex;align-items:center;gap:11px;border:0;background:transparent;color:var(--side-muted);font-weight:500;font-size:.92rem;padding:9px 10px;border-radius:9px;cursor:pointer;text-align:left}
+.nav button:hover{color:var(--side-ink);background:var(--side-2)}
+.nav button[aria-current="page"]{background:var(--side-2);color:var(--side-ink);box-shadow:inset 3px 0 0 var(--accent)}
+.nav .badge{margin-left:auto;font-size:.7rem;font-weight:600;background:var(--side-line);color:var(--side-ink);border-radius:99px;padding:1px 7px}
+.nav .badge.live{background:var(--accent);color:var(--accent-ink)}
+.side-card{margin-top:auto;border:1px solid var(--side-line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--side-2)}
+.side-card .t{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--side-muted);font-weight:600}
+.side-card .v{font-family:var(--f-display);font-weight:700;font-size:1.5rem;line-height:1}
+.meter{height:6px;border-radius:3px;background:var(--side-line);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:3px}
+.side-card .s{font-size:.75rem;color:var(--side-muted)}
+.side-card button{border:0;background:none;color:var(--side-ink);font-size:.78rem;font-weight:600;padding:0;cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:3px}
+
+.content{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:color-mix(in srgb,var(--paper) 90%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.topbar .in,.main{max-width:1240px;width:100%;margin:0 auto;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.topbar .in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 18px;padding-block:14px}
+.ttl h1{font-size:1.75rem;line-height:1}
+.ttl p{margin:3px 0 0;font-size:.82rem;color:var(--muted)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--muted);font-weight:600;font-size:.8rem;padding:6px 11px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:disabled{opacity:.45;cursor:not-allowed}
+.search{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:0 11px;height:36px}
+.search svg{width:15px;height:15px;color:var(--faint)}
+.search input{border:0;background:transparent;font-size:.86rem;color:var(--ink);width:160px;outline:none;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-weight:600;font-size:.86rem;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 14px;height:36px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
+.btn svg{width:15px;height:15px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.sm{height:30px;padding:0 10px;font-size:.8rem;border-radius:8px}
+.btn.icon{width:36px;padding:0;color:var(--muted)}
+.btn.sm.icon{width:30px}
+.btn.won{background:var(--won);border-color:var(--won);color:#fff}
+.btn.lost{background:var(--lost);border-color:var(--lost);color:#fff}
+.btn.soft{background:var(--card-2)}
+.btn.danger{color:var(--lost)}
+.btn.grow{flex:1}
+.main{padding-block:24px 110px;display:flex;flex-direction:column;gap:20px}
+
+/* ---------- Tarjetas ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-1);min-width:0}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:16px 18px 0}
+.card-h h2{font-size:1.22rem}
+.card-h .aside{font-size:.78rem;color:var(--muted)}
+.card-b{padding:14px 18px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.grid{display:grid;gap:20px}
+.g-main{grid-template-columns:minmax(0,1.75fr) minmax(0,1fr)}
+.g-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:980px){.g-main,.g-2{grid-template-columns:minmax(0,1fr)}}
+
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.kpis.k4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:1180px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.kpis.k4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.kpis,.kpis.k4{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis .kpi:first-child{grid-column:1/-1}}
+.kpi{padding:15px 16px;display:flex;flex-direction:column;gap:5px;position:relative;overflow:hidden}
+.kpi .lbl{display:flex;align-items:center;gap:6px;font-size:.68rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--faint)}
+.kpi .val{font-family:var(--f-display);font-weight:700;font-size:2.1rem;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.76rem;color:var(--muted)}
+.delta{display:inline-flex;align-items:center;gap:2px;font-weight:600;font-size:.72rem;padding:1px 6px;border-radius:5px}
+.delta.up{background:var(--won-soft);color:var(--won)} .delta.down{background:var(--lost-soft);color:var(--lost)} .delta.eq{background:var(--card-2);color:var(--muted)}
+.kpi.hero{background:var(--side);color:var(--side-ink);border-color:var(--side)}
+.kpi.hero .lbl{color:var(--side-muted)} .kpi.hero .foot{color:var(--side-muted)}
+.kpi.hero .val.pos{color:var(--won-hi)} .kpi.hero .val.neg{color:var(--lost-hi)}
+.kpi.hero .delta.up{background:rgba(91,211,154,.15);color:var(--won-hi)} .kpi.hero .delta.down{background:rgba(255,140,143,.15);color:var(--lost-hi)}
+.kpi.hero .spark{position:absolute;right:14px;bottom:14px;width:38%;height:36px;opacity:.9}
+.ring{width:46px;height:46px;flex:none}
+.ring circle{fill:none;stroke-width:5.5}
+
+/* Gráficas */
+.chart{position:relative}
+.chart svg{width:100%;height:auto;display:block;touch-action:pan-y}
+.chart text,.axis{fill:var(--faint);font:11px var(--f-mono)}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);font-size:.76rem;line-height:1.35;padding:6px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-118%);box-shadow:var(--shadow-2);z-index:2}
+.tip b{font-family:var(--f-mono)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.76rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* Forma y racha */
+.form{display:flex;gap:5px;flex-wrap:wrap}
+.form span{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font:700 .74rem var(--f-body);color:#fff}
+.form .W{background:var(--won)} .form .L{background:var(--lost)} .form .V{background:var(--void)}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fact{background:var(--card-2);border-radius:10px;padding:10px 12px;min-width:0}
+.fact .k{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.fact .v{font-family:var(--f-display);font-weight:700;font-size:1.35rem;line-height:1.1}
+.fact .s{font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Calendario */
+.heat-wrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px}
+.heat{display:grid;grid-template-rows:repeat(7,auto);grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:3px}
+.heat i{aspect-ratio:1;border-radius:3px;background:var(--line-2);display:block}
+.heat-days{display:grid;grid-template-rows:repeat(7,1fr);gap:3px;font:10px var(--f-mono);color:var(--faint)}
+.heat-days span{display:flex;align-items:center}
+
+/* Tablas */
+.tablebox{overflow-x:auto;margin:0 -6px}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{font-weight:600;color:var(--faint);text-align:left;font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.r{text-align:right}
+.mini{height:6px;border-radius:3px;background:var(--line-2);position:relative;overflow:hidden;min-width:48px}
+.mini span{position:absolute;top:0;bottom:0;border-radius:3px}
+.bk{width:18px;height:18px;border-radius:5px;display:inline-grid;place-items:center;font-size:.62rem;font-weight:700;color:#fff;flex:none;vertical-align:-4px;margin-right:7px}
+
+/* Duelo */
+.duel-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:4px}
+.who{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:700;font-size:1.25rem}
+.who.right{justify-content:flex-end}
+.av{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font:700 .82rem var(--f-body)}
+.av.c{background:var(--accent);color:var(--accent-ink)} .av.m{background:var(--ink);color:var(--paper)}
+.vs{font:700 .68rem var(--f-body);color:var(--faint);letter-spacing:.16em}
+.drow{display:grid;grid-template-columns:minmax(0,1fr) 96px minmax(0,1fr);gap:10px;align-items:center;font-size:.86rem;padding:5px 0}
+.drow .lab{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);text-align:center}
+.drow .a,.drow .b{display:flex;align-items:center;gap:8px;font-weight:600}
+.drow .a{flex-direction:row-reverse}
+.drow .tr{flex:1;height:7px;background:var(--line-2);border-radius:4px;position:relative;overflow:hidden}
+.drow .tr i{position:absolute;top:0;bottom:0;border-radius:4px}
+.drow .a .tr i{right:0;background:var(--accent)} .drow .b .tr i{left:0;background:var(--ink)}
+.drow .win{background:var(--won-soft);border-radius:5px;padding:0 5px}
+
+/* Lista de apuestas */
+.listbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.stabs{display:flex;gap:4px;flex-wrap:wrap}
+.stabs button{border:1px solid var(--line);background:var(--card);color:var(--muted);font-weight:600;font-size:.8rem;padding:6px 12px;border-radius:99px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.stabs button span{font-size:.7rem;color:var(--faint)}
+.stabs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.stabs button[aria-pressed="true"] span{color:color-mix(in srgb,var(--paper) 70%,transparent)}
+.sel-in{appearance:none;-webkit-appearance:none;font-size:.82rem;font-weight:500;color:var(--ink);background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238B95A5' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 11px center;border:1px solid var(--line);border-radius:9px;padding:7px 30px 7px 11px;cursor:pointer;max-width:180px}
+.list{display:flex;flex-direction:column}
+.lhead,.lrow{display:grid;grid-template-columns:96px minmax(0,1fr) 120px 84px 70px 112px 22px;gap:14px;align-items:center;padding:11px 18px}
+.lhead{font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line)}
+.lrow{border:0;border-bottom:1px solid var(--line-2);cursor:pointer;background:var(--card);width:100%;text-align:left;color:var(--ink);font-size:.88rem}
+.lrow:hover{background:var(--card-2)}
+.lrow:last-child{border-bottom:0}
+.lday{padding:8px 18px;font-size:.7rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);background:var(--card-2);border-bottom:1px solid var(--line-2);display:flex;justify-content:space-between;gap:8px}
+.lday b{font-weight:600;letter-spacing:0;text-transform:none}
+.when{display:flex;flex-direction:column;gap:3px}
+.st{display:inline-flex;align-items:center;gap:5px;font-size:.64rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:2px 8px;border-radius:99px;width:max-content}
+.st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.st.won{background:var(--won-soft);color:var(--won)} .st.lost{background:var(--lost-soft);color:var(--lost)} .st.pending{background:var(--pend-soft);color:var(--pend)} .st.void,.st.cashout{background:var(--void-soft);color:var(--void)}
+@media (prefers-reduced-motion:no-preference){.st.pending::before{animation:pulse 1.8s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.25}}
+.what{min-width:0}
+.what .t{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.what .m{font-size:.76rem;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.what .m .bk{margin-right:0;width:15px;height:15px;font-size:.55rem;vertical-align:0}
+.tagc{font-size:.64rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:0 5px}
+.tagw{font-size:.66rem;font-weight:600;color:var(--pend);background:var(--pend-soft);border-radius:4px;padding:1px 6px}
+.prog{display:flex;flex-direction:column;gap:4px}
+.bars{display:flex;gap:2px}
+.bars i{flex:1;height:5px;border-radius:2px;background:var(--line)}
+.bars i.won{background:var(--won)} .bars i.lost{background:var(--lost)} .bars i.void{background:var(--void)}
+.prog small{font-size:.72rem;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-size:.84rem}
+.res{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.res small{display:block;font-weight:500;font-size:.7rem;color:var(--muted)}
+.chev{color:var(--faint);display:flex}
+.lc{container-type:inline-size}
+@container (max-width:760px){
+  .lhead{display:none}
+  .lrow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"what res" "prog prog" "when stake";row-gap:8px;padding:13px 16px}
+  .lrow .what{grid-area:what}.lrow .res{grid-area:res}.lrow .prog{grid-area:prog}.lrow .when{grid-area:when;flex-direction:row;align-items:center;gap:8px}
+  .lrow .c-stake{grid-area:stake;justify-self:end;color:var(--muted)}.lrow .c-odds,.lrow .chev{display:none}
+  .lrow .prog:empty{display:none}
+}
+
+/* Ficha lateral */
+.scrim{position:fixed;inset:0;z-index:40;background:color-mix(in srgb,var(--side) 50%,transparent)}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:41;width:min(540px,100%);background:var(--paper);border-left:1px solid var(--line);display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.18);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+@media (prefers-reduced-motion:no-preference){.drawer.anim{animation:slide .22s cubic-bezier(.2,.8,.2,1)}@keyframes slide{from{transform:translateX(30px);opacity:.4}}}
+.dr-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--card)}
+.dr-h .t{font-family:var(--f-display);font-weight:700;font-size:1.3rem}
+.dr-b{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:16px}
+.ticket{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-2);flex:none}
+.tk-top{padding:16px 18px;display:flex;flex-direction:column;gap:8px;border-bottom:2px dashed var(--line);position:relative}
+.tk-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:.78rem;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;font-weight:500;padding:2px 8px;border-radius:6px;background:var(--card-2);border:1px solid var(--line);color:var(--muted)}
+.chip .bk{width:14px;height:14px;font-size:.55rem;margin:0;vertical-align:0}
+.chip.c{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+.tk-title{font-weight:600;font-size:1.08rem;line-height:1.35;overflow-wrap:anywhere}
+.tk-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:14px 18px;gap:10px;background:var(--card-2)}
+.kv .k{font-size:.64rem;font-weight:600;text-transform:uppercase;letter-spacing:.11em;color:var(--faint)}
+.kv .v{font-family:var(--f-display);font-weight:700;font-size:1.55rem;line-height:1.05;font-variant-numeric:tabular-nums}
+.sels{list-style:none;margin:0;padding:0}
+.sels li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:center;padding:11px 18px;border-top:1px solid var(--line-2)}
+.sels li.won{background:color-mix(in srgb,var(--won-soft) 55%,var(--card))} .sels li.lost{background:color-mix(in srgb,var(--lost-soft) 55%,var(--card))} .sels li.void{background:color-mix(in srgb,var(--void-soft) 55%,var(--card))}
+.sels .e{font-weight:500;font-size:.9rem;overflow-wrap:anywhere}
+.sels .m{font-size:.76rem;color:var(--muted);overflow-wrap:anywhere}
+.sels .sp{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-right:6px}
+.sels .o{font-family:var(--f-mono);font-weight:600;font-size:.86rem;background:var(--card-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+.rset{grid-column:1/-1;display:flex;gap:4px;flex-wrap:wrap}
+.rset button{border:1px solid var(--line);background:var(--card);color:var(--muted);height:28px;padding:0 10px;border-radius:7px;font-size:.76rem;font-weight:600;cursor:pointer}
+.rset button[aria-pressed="true"].w{background:var(--won);border-color:var(--won);color:#fff}
+.rset button[aria-pressed="true"].l{background:var(--lost);border-color:var(--lost);color:#fff}
+.rset button[aria-pressed="true"].v{background:var(--void);border-color:var(--void);color:#fff}
+.dr-f{padding:14px 18px;border-top:1px solid var(--line);background:var(--card);display:flex;flex-direction:column;gap:8px}
+.dr-f .row{display:flex;gap:8px;flex-wrap:wrap}
+.notes{font-size:.85rem;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;overflow-wrap:anywhere;white-space:pre-wrap}
+.inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem}
+
+/* Formularios */
+.overlay{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--side) 55%,transparent);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:max(28px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 28px max(12px,env(safe-area-inset-left,0px))}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:18px;width:min(780px,100%);display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.3);overflow:hidden}
+.sheet-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
+.sheet-h h2{font-size:1.5rem}
+.sheet-b{padding:18px 20px;display:flex;flex-direction:column;gap:20px}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec-t{font-size:.68rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--faint)}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:.76rem;font-weight:600;color:var(--muted)}
+.field input,.field select,.field textarea,.inline input{font-size:.92rem;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:9px;padding:9px 11px;width:100%;min-width:0}
+.inline .money{width:130px}
+.field textarea{resize:vertical;min-height:70px}
+.money{position:relative}
+.money input{padding-right:28px}
+.money::after{content:"€";position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none}
+.segf{display:flex;background:var(--card-2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.segf button{flex:1;border:0;background:transparent;color:var(--muted);font-weight:600;font-size:.84rem;padding:7px 10px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.segf button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.segf.status button[aria-pressed="true"][data-v="won"]{background:var(--won);color:#fff}
+.segf.status button[aria-pressed="true"][data-v="lost"]{background:var(--lost);color:#fff}
+.segf.status button[aria-pressed="true"][data-v="pending"]{background:var(--pend);color:#fff}
+.selrows{display:flex;flex-direction:column;gap:8px}
+.selrow{display:grid;grid-template-columns:24px minmax(0,2fr) minmax(0,1.2fr) minmax(0,1.4fr) 82px 112px 34px;gap:6px;align-items:center;background:var(--card-2);border:1px solid var(--line);border-radius:10px;padding:6px}
+.selrow .n{font:600 .75rem var(--f-mono);color:var(--faint);text-align:center}
+.selrow input,.selrow select{font-size:.86rem;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:7px 8px;width:100%;min-width:0}
+.rm{border:0;background:transparent;color:var(--faint);cursor:pointer;height:32px;border-radius:7px;font-size:1rem}
+.rm:hover{color:var(--lost);background:var(--lost-soft)}
+@media (max-width:680px){.selrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 34px}.selrow .n{display:none}.selrow .ev-in{grid-column:1/3}.selrow .rm{grid-row:1;grid-column:3}}
+.add{border:1.5px dashed var(--line);background:transparent;color:var(--accent);font-weight:600;font-size:.86rem;padding:9px;border-radius:10px;cursor:pointer}
+.summary{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line);background:var(--card-2)}
+.summary .sum{display:flex;gap:24px;flex-wrap:wrap}
+.summary .kv .v{font-size:1.4rem}
+.err{color:var(--lost);font-size:.82rem;font-weight:500}
+.check{display:flex;gap:8px;align-items:center;font-size:.84rem;color:var(--muted);cursor:pointer}
+
+.empty{border:1.5px dashed var(--line);border-radius:14px;padding:40px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:8px;background:var(--card)}
+.empty svg{width:42px;height:42px;color:var(--faint)}
+.empty b{color:var(--ink);font-family:var(--f-display);font-size:1.45rem}
+.banner{border:1px solid var(--pend);background:var(--pend-soft);border-radius:12px;padding:12px 14px;font-size:.88rem}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-size:.88rem;font-weight:500;box-shadow:var(--shadow-2);max-width:calc(100% - 32px)}
+.toast.err{background:var(--lost);color:#fff}
+.toast{display:flex;align-items:center;gap:12px}
+.tbtn{border:0;background:none;color:var(--accent-line);font-weight:700;font-size:.86rem;cursor:pointer;padding:2px 4px;text-decoration:underline;text-underline-offset:3px}
+.callout{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;background:var(--lost-soft);border-radius:12px;padding:14px 16px}
+.callout .big{font-family:var(--f-display);font-weight:700;font-size:2.4rem;line-height:1;color:var(--lost)}
+.callout p{margin:0;font-size:.88rem}
+.suspect{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.suspect .ic{width:40px;height:40px;border-radius:10px;background:var(--lost);color:#fff;display:grid;place-items:center;font:700 1.3rem var(--f-display);flex:none}
+.suspect .k{font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.rset{align-items:center}
+.cl{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;color:var(--faint);font-weight:600;margin-left:auto}
+.cl input{width:66px;font:600 .8rem var(--f-mono);color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.clv{font:600 .72rem var(--f-mono);padding:2px 6px;border-radius:5px;background:var(--card-2);color:var(--muted)}
+.clv.up{background:var(--won-soft);color:var(--won)} .clv.down{background:var(--lost-soft);color:var(--lost)}
+.tagx{font-size:.68rem;font-weight:600;color:var(--muted);background:var(--card-2);border:1px solid var(--line);border-radius:99px;padding:0 7px}
+.auto{border:1px solid var(--side-line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;font-size:.74rem;color:var(--side-muted)}
+.auto b{color:var(--side-ink);display:flex;align-items:center;gap:7px;font-size:.8rem}
+.auto b::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--won-hi);box-shadow:0 0 0 3px rgba(91,211,154,.18)}
+.kbd{font:600 .66rem var(--f-mono);border:1px solid var(--side-line);border-radius:4px;padding:0 4px;color:var(--side-muted);margin-left:auto}
+/* ---------- Capa visual ---------- */
+body{background:var(--paper);font-size:14.5px;letter-spacing:-.003em}
+h1,h2,h3{font-weight:600;letter-spacing:-.025em}
+.logo b,.kpi .val,.fact .v,.kv .v,.w-stats b,.rep-nums b,.vsrow .pr,.hl .v,.slip-t,.slip-f b,.dr-h .t,.who,.empty b,.callout .big,.side-card .v,.donut .dc,.suspect .ic,.hl .ic,.sheet-h h2{font-weight:600;letter-spacing:-.03em;font-feature-settings:"tnum"}
+.side{border-right:1px solid var(--side-line)}
+.mark{background:none;box-shadow:none;width:38px;height:38px;border-radius:11px;overflow:hidden;box-shadow:0 6px 20px rgba(47,91,234,.4)}
+.mark svg{width:100%;height:100%}
+.logo b{font-size:1.4rem}
+.nav-t{letter-spacing:.14em}
+.nav button{border-radius:9px}
+.nav button[aria-current="page"]{background:rgba(255,255,255,.07);color:#fff;box-shadow:none}
+.nav button[aria-current="page"] svg{color:var(--accent-text)}
+.topbar{background:color-mix(in srgb,var(--paper) 78%,transparent)}
+.ttl h1{font-size:1.9rem;line-height:1.05}
+.card{background:var(--card);border-radius:16px;border-color:var(--line)}
+.card-h h2{font-size:1.1rem}
+.kpi .val{font-size:2rem}
+.btn{border-radius:10px;font-weight:600;background:var(--card-2);border-color:var(--line)}
+.btn:hover{border-color:rgba(255,255,255,.2);background:#21212A}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);box-shadow:0 1px 0 rgba(255,255,255,.22) inset,0 8px 22px rgba(47,91,234,.4)}
+.btn.primary:hover{background:#4A72F5;filter:none}
+.btn.ghost{background:transparent}
+.seg{background:var(--card)}
+.seg button[aria-pressed="true"],.stabs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#0B0B0E}
+.stabs button[aria-pressed="true"] span{color:rgba(11,11,14,.6)}
+.stabs button{background:var(--card)}
+.search,.sel-in{background-color:var(--card)}
+.field input,.field select,.field textarea,.inline input,.selrow input,.selrow select{background:#0E0E12}
+.field input:focus,.field select:focus,.field textarea:focus,.search:focus-within,.selrow input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.btn.won,.rset button[aria-pressed="true"].w{color:#04261A}
+.btn.lost,.rset button[aria-pressed="true"].l{color:#2E0912}
+.rset button[aria-pressed="true"].v{color:#0B0B0E}
+.form span{color:#0B0B0E}
+.suspect .ic{color:#2E0912}
+.segf.status button[aria-pressed="true"][data-v="won"]{color:#04261A}
+.segf.status button[aria-pressed="true"][data-v="lost"]{color:#2E0912}
+.segf.status button[aria-pressed="true"][data-v="pending"]{background:var(--pend);color:#2B1D00}
+.st.pending{box-shadow:inset 0 0 0 1px rgba(251,191,36,.3)}
+.lrow{background:transparent}.lrow:hover{background:rgba(255,255,255,.035)}
+.lday{background:rgba(255,255,255,.025)}
+.tk-nums{background:rgba(255,255,255,.03)}
+.ticket{background:var(--card)}
+.fact{background:rgba(255,255,255,.035);border:0;border-radius:12px}
+.callout{background:var(--lost-soft);border:1px solid rgba(251,113,133,.25)}
+.empty{background:transparent}
+.overlay,.scrim{background:rgba(5,5,8,.66);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sheet{border-radius:20px;box-shadow:var(--shadow-2)}
+.drawer{box-shadow:-20px 0 60px rgba(0,0,0,.5)}
+.tagc,.chip.c{color:var(--accent-text)}
+.tbtn{color:var(--accent-text)}
+.tabbar{background:rgba(9,9,12,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.tabbar .plus{background:var(--accent);color:#fff;box-shadow:0 10px 26px rgba(47,91,234,.45)}
+.tabbar button[aria-current="page"]::after{background:var(--accent)}
+.side-card{background:var(--side-2)}
+.ai{background:var(--accent-soft)}
+.hl button{background:rgba(255,255,255,.03);border-color:var(--line-2)}.hl button:hover{background:rgba(255,255,255,.06)}
+.rep-nums div{background:rgba(255,255,255,.04);border-color:var(--line-2)}
+.concl li::before{background:var(--accent)}
+.segf{background:var(--card)}
+.segf button[aria-pressed="true"]{background:var(--card-2);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.add{color:var(--accent-text);border-color:var(--accent-line)}
+.nav .badge.live{background:var(--accent);color:#fff}
+.toast{background:#F4F4F6;color:#0B0B0E}
+.tip{background:#F4F4F6;color:#0B0B0E}
+.tbtn{color:#2F5BEA}
+
+/* Bienvenida + boleto de papel */
+.welcome{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;align-items:center;padding:28px 30px;border-radius:18px;border:1px solid var(--side);background:radial-gradient(520px 280px at 100% 0%,rgba(182,138,46,.22),transparent 70%),var(--side);box-shadow:var(--shadow-1)}
+.welcome::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 80px,rgba(255,255,255,.018) 80px 160px);pointer-events:none}
+.w-l,.w-r{position:relative;z-index:1;min-width:0}
+.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-text)}
+.welcome h2{font-size:clamp(2rem,3.8vw,3rem);line-height:1.02;margin:10px 0 8px}
+.welcome .date{color:var(--muted);font-size:.92rem;margin:0}.welcome .date::first-letter{text-transform:uppercase}
+.w-stats{display:flex;gap:28px;flex-wrap:wrap;margin:20px 0 22px}
+.w-stats span{display:block;font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.w-stats b{font-family:var(--f-display);font-size:2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.w-acts{display:flex;gap:10px;flex-wrap:wrap}
+.slip{display:block;width:100%;max-width:390px;margin-left:auto;background:#FAF7EE;color:#16130C;border-radius:14px;padding:18px 20px 16px;transform:rotate(1.8deg);box-shadow:0 30px 60px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.05);border:0;text-align:left;cursor:pointer;font-family:var(--f-body);position:relative}
+@media (prefers-reduced-motion:no-preference){.slip{transition:transform .25s cubic-bezier(.2,.8,.2,1)}.slip:hover{transform:rotate(0) translateY(-3px)}}
+.slip::before,.slip::after{content:"";position:absolute;left:12px;right:12px;height:8px;background:radial-gradient(circle at 6px 4px,#14201B 3.6px,transparent 4.2px) repeat-x;background-size:12px 8px}
+.slip::before{top:-4px}.slip::after{bottom:-4px}
+.slip-h{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#6B6455}
+.slip-h .live{color:#A15F00;display:flex;gap:6px;align-items:center}
+.slip-h .live::before{content:"";width:7px;height:7px;border-radius:50%;background:#E59A12}
+@media (prefers-reduced-motion:no-preference){.slip-h .live::before{animation:pulse 1.6s infinite}}
+.slip-t{font-family:var(--f-display);font-weight:700;font-size:1.4rem;line-height:1.08;margin:8px 0 12px;color:#16130C}
+.slip ul{list-style:none;margin:0;padding:0;border-top:1px dashed #CDC4AE}
+.slip li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed #E2DACA;font-size:.8rem}
+.slip li span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.slip li i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#CFC6B2;margin-right:8px;vertical-align:1px}
+.slip li i.won{background:#139A5B}.slip li i.lost{background:#D64545}.slip li i.void{background:#8C8676}
+.slip li b{font-family:var(--f-mono);font-size:.76rem;font-weight:600}
+.slip-more{font-size:.74rem;color:#6B6455;padding:6px 0 0}
+.slip-bar{display:flex;gap:2px;margin-top:12px}.slip-bar i{flex:1;height:4px;border-radius:2px;background:#DED6C4}.slip-bar i.won{background:#139A5B}.slip-bar i.lost{background:#D64545}
+.slip-f{display:flex;justify-content:space-between;align-items:flex-end;margin-top:12px;gap:10px}
+.slip-f span{display:block;font-size:.6rem;letter-spacing:.13em;text-transform:uppercase;color:#6B6455;font-weight:800}
+.slip-f b{font-family:var(--f-display);font-size:1.8rem;line-height:1;font-variant-numeric:tabular-nums}
+.slip-f b.pot{color:#0E7A47}
+.slip-empty{border:1.5px dashed rgba(255,255,255,.2);border-radius:14px;padding:28px 20px;text-align:center;color:var(--muted);max-width:360px;margin-left:auto}
+@media (max-width:980px){.welcome{grid-template-columns:minmax(0,1fr);padding:22px}.slip,.slip-empty{margin:6px auto 0;transform:rotate(0)}}
+@media (max-width:520px){.w-stats{gap:18px}.w-stats b{font-size:1.6rem}}
+/* Informe */
+.g-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:1150px){.g-3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.g-3{grid-template-columns:minmax(0,1fr)}}
+.rep-hero{position:relative;overflow:hidden;padding:26px 28px;border-radius:18px;border:1px solid var(--side);background:radial-gradient(620px 260px at 100% 0%,rgba(182,138,46,.2),transparent 70%),var(--side);display:flex;flex-direction:column;gap:20px}
+.rep-hero::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 80px,rgba(255,255,255,.02) 80px 160px);pointer-events:none}
+.rep-hero>*{position:relative;z-index:1}
+.rep-hero h2{font-size:clamp(1.7rem,3.2vw,2.5rem);line-height:1.05;max-width:28ch}
+.rep-hero h2 .a{color:var(--accent-text);font-style:italic}
+.rep-nums{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.rep-nums{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rep-nums div{background:rgba(255,255,255,.045);border:1px solid var(--line-2);border-radius:14px;padding:12px 14px;min-width:0}
+.rep-nums span{display:block;font-size:.63rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.rep-nums b{font-family:var(--f-display);font-size:clamp(1.35rem,1.9vw,1.75rem);line-height:1.1;font-variant-numeric:tabular-nums}
+.rep-nums small{display:block;font-size:.74rem;color:var(--muted)}
+.donut{display:grid;grid-template-columns:132px minmax(0,1fr);gap:16px;align-items:center}
+.donut svg{width:132px;height:132px}
+.donut .dc{fill:var(--ink);font:700 24px var(--f-display)} .donut .ds{fill:var(--faint);font:700 8.5px var(--f-body);letter-spacing:.12em}
+.dleg{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:.84rem;min-width:0}
+.dleg li{display:flex;align-items:center;gap:8px;min-width:0}.dleg i{width:10px;height:10px;border-radius:3px;flex:none}.dleg b{margin-left:auto;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dleg .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:420px){.donut{grid-template-columns:minmax(0,1fr)}.donut svg{margin:0 auto}}
+.stack{display:flex;flex-direction:column;gap:11px}
+.chart.flow{overflow-x:auto}.chart.flow svg{min-width:560px}
+.srow{display:grid;grid-template-columns:118px minmax(0,1fr) 84px;gap:10px;align-items:center;font-size:.84rem}
+.srow .bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--line-2)}
+.srow .bar i{display:block;height:100%}
+.srow .n{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.srow .lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vsrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-2)}
+.vsrow:last-child{border-bottom:0}
+.vsrow .nm{font-weight:600}.vsrow .sub{font-size:.76rem;color:var(--muted)}
+.vsrow .pr{font-family:var(--f-display);font-weight:700;font-size:1.5rem;font-variant-numeric:tabular-nums}
+.hl{display:flex;flex-direction:column;gap:8px}
+.hl button{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;color:var(--ink);cursor:pointer;width:100%}
+.hl button:hover{background:rgba(255,255,255,.06)}
+.hl .ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font:700 1.15rem var(--f-display)}
+.hl .k{font-size:.63rem;letter-spacing:.11em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.hl .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hl .v{font-family:var(--f-display);font-weight:700;font-size:1.35rem;font-variant-numeric:tabular-nums}
+.concl{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px}
+.concl li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;font-size:.9rem;line-height:1.5}
+.concl li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);margin:7px 0 0 4px}
+.ai{border:1px solid var(--accent-line);background:linear-gradient(135deg,rgba(245,185,63,.12),rgba(245,185,63,.03));border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.ai-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ai-h b{display:flex;gap:8px;align-items:center;font-size:.92rem}
+.ai-out{white-space:pre-wrap;font-size:.9rem;line-height:1.55;color:var(--ink)}
+.pctf{position:relative}.pctf input{padding-right:28px}.pctf::after{content:"%";position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none}
+.skel{background:linear-gradient(90deg,var(--line-2),var(--card-2),var(--line-2));background-size:200% 100%;border-radius:8px;height:14px}
+@media (prefers-reduced-motion:no-preference){.skel{animation:sk 1.2s linear infinite}@keyframes sk{to{background-position:-200% 0}}}
+
+/* Móvil */
+.tabbar{display:none}
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{display:none}
+  .topbar .in,.main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .ttl h1{font-size:1.5rem}
+  .search{flex:1;min-width:120px}.search input{width:100%}
+  .top-new{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--side);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));border-top:1px solid var(--side-line)}
+  .tabbar button{border:0;background:none;color:var(--side-muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.66rem;font-weight:600;padding:6px 0;cursor:pointer;position:relative}
+  .tabbar button[aria-current="page"]{color:var(--side-ink)}
+  .tabbar button[aria-current="page"]::after{content:"";position:absolute;top:-6px;width:22px;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+  .tabbar .plus{align-self:center;justify-self:center;width:50px;height:50px;border-radius:15px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;margin-top:-18px;box-shadow:0 8px 22px rgba(20,32,27,.35)}
+  .tabbar .plus svg{width:24px;height:24px}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:520px){.kpi .val{font-size:1.8rem}.seg button{padding:6px 8px}.drow{grid-template-columns:minmax(0,1fr) 74px minmax(0,1fr)}.tk-nums .kv .v{font-size:1.3rem}}
+
+/* Bloques destacados */
+.welcome,.rep-hero{background:radial-gradient(560px 260px at 100% 0%,rgba(47,91,234,.2),transparent 70%),radial-gradient(420px 220px at 0% 100%,rgba(52,211,153,.05),transparent 70%),var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow-1)}
+.welcome::after,.rep-hero::after{display:none}
+.kpi.hero{background:linear-gradient(135deg,rgba(47,91,234,.26),rgba(47,91,234,.05)),var(--card);border:1px solid var(--accent-line);color:var(--ink)}
+.kpi.hero .lbl,.kpi.hero .foot{color:var(--muted)}
+.eyebrow{font-weight:600;letter-spacing:.16em;color:var(--accent-text)}
+.welcome h2{font-weight:600;letter-spacing:-.035em}
+.rep-hero h2 .a{font-style:normal;color:var(--accent-text)}
+.slip{background:var(--card-2);color:var(--ink);transform:none;border:1px solid var(--line);box-shadow:0 24px 50px rgba(0,0,0,.45);border-radius:16px}
+.slip::before,.slip::after{display:none}
+.slip-h{color:var(--faint)}.slip-h .live{color:var(--pend)}.slip-h .live::before{background:var(--pend)}
+.slip-t{color:var(--ink)}
+.slip ul{border-top:1px dashed var(--line)}.slip li{border-bottom:1px dashed var(--line-2)}
+.slip li i{background:var(--faint)}.slip li i.won{background:var(--won)}.slip li i.lost{background:var(--lost)}.slip li i.void{background:var(--void)}
+.slip-more{color:var(--faint)}
+.slip-bar i{background:var(--line)}.slip-bar i.won{background:var(--won)}.slip-bar i.lost{background:var(--lost)}
+.slip-f span{color:var(--faint)}.slip-f b.pot{color:var(--won)}
+@media (prefers-reduced-motion:no-preference){.slip:hover{transform:translateY(-3px)}}
+@media (max-width:980px){.slip{transform:none}}
+/* Alta rápida */
+.quick textarea{width:100%;resize:vertical;min-height:84px;font:500 .86rem/1.5 var(--f-mono);color:var(--ink);background:#0E1017;border:1px dashed var(--accent-line);border-radius:12px;padding:12px 14px}
+.quick textarea:focus{outline:none;border-style:solid;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.quick textarea::placeholder{color:var(--faint)}
+.q-row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chips button{border:1px solid var(--line);background:var(--card-2);color:var(--muted);font:600 .76rem var(--f-body);padding:4px 10px;border-radius:99px;cursor:pointer}
+.chips button:hover{color:var(--ink);border-color:var(--accent-line)}
+
+/* Panel: cifra grande + curva */
+.hero2{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.h2-main{padding:22px 24px 12px;display:flex;flex-direction:column;gap:4px;border-radius:22px;overflow:hidden;background:radial-gradient(560px 260px at 0% 0%,rgba(47,91,234,.17),transparent 70%),var(--card)}
+.h2-top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.h2-lbl{font-size:.84rem;color:var(--muted);margin-top:12px}
+.h2-val{font-size:clamp(2.6rem,5.4vw,4.1rem);font-weight:600;letter-spacing:-.05em;line-height:1.04;font-variant-numeric:tabular-nums}
+.h2-sub{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:.85rem;flex-wrap:wrap;margin-top:4px}
+.h2-chart{margin:8px -12px 0}
+.h2-side{display:flex;flex-direction:column;gap:12px;justify-content:center;min-width:0}
+.h2-side .slip{margin:0;max-width:none}
+.h2-more{border:0;background:none;color:var(--accent-text);font:600 .84rem var(--f-body);cursor:pointer;text-align:left;padding:2px 4px}
+.h2-cta{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:28px 22px;border:1px dashed var(--line);border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent)}
+.h2-cta b{font-size:1.25rem;letter-spacing:-.02em}
+.h2-cta p{margin:0;color:var(--muted);font-size:.88rem;max-width:26ch}
+@media (max-width:980px){.hero2{grid-template-columns:minmax(0,1fr)}}
+.chart text{font-family:var(--f-mono)}
+.heat{gap:4px}.heat i{border-radius:5px}
+
+/* Sugerencias de BetIA */
+.sug .card-h h2{display:flex;align-items:center;gap:8px}
+.sug .card-h h2 svg{width:18px;height:18px;color:var(--accent-text)}
+.sug-sum{margin:0;font-size:.92rem;color:var(--muted);max-width:75ch}
+.sug-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.sug-c{display:flex;flex-direction:column;gap:10px;background:var(--card-2);border:1px solid var(--line-2);border-radius:14px;padding:14px 16px}
+.sug-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sug-h b{font-size:1rem;letter-spacing:-.015em}
+.sug-c ul{list-style:none;margin:0;padding:0;border-top:1px dashed var(--line)}
+.sug-c li{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--line-2);font-size:.86rem}
+.sug-c li span{min-width:0}.sug-c li i{display:block;font-style:normal;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.sug-c li small{display:block;color:var(--muted);font-size:.78rem}
+.sug-c li b{font-family:var(--f-mono);font-size:.84rem;white-space:nowrap}
+.sug-why{margin:0;font-size:.84rem;color:var(--muted)}
+.sug-f{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:auto;font:500 .78rem var(--f-mono);color:var(--muted)}
+.sug-note{margin-top:2px}
+.sug-busy{display:flex;flex-direction:column;gap:10px}
+</style>
+
+<div class="app">
+  <aside class="side" aria-label="Menú">
+    <div class="logo"><div class="mark" aria-hidden="true"><svg viewBox="0 0 64 64"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3F6BFF"/><stop offset="1" stop-color="#16297F"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#bg)"/><rect x="16" y="12" width="8.5" height="40" rx="4.25" fill="#fff"/><circle cx="35" cy="37" r="10" fill="none" stroke="#fff" stroke-width="8.5"/></svg></div><div><b>BetIA</b><span>Tus apuestas, con datos</span></div></div>
+    <nav class="nav" id="nav"></nav>
+    <nav class="nav"><span class="nav-t">Herramientas</span>
+      <button type="button" id="side-new"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nueva apuesta<span class="kbd">N</span></button>
+      <button type="button" id="side-move"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></svg>Depósito o retirada</button>
+      <button type="button" id="side-export"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Exportar CSV</button>
+      <button type="button" id="side-settings"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Ajustes</button>
+    </nav>
+    <div class="side-card" id="side-limit"></div>
+    <div class="auto" id="side-auto"></div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="in">
+        <div class="ttl"><h1 id="v-title">Panel</h1><p id="v-sub">Resumen de tu actividad</p></div>
+        <div class="tools">
+          <div class="seg" id="period" role="group" aria-label="Periodo">
+            <button type="button" data-v="7">7D</button><button type="button" data-v="30">30D</button><button type="button" data-v="month">Mes</button><button type="button" data-v="year">Año</button><button type="button" data-v="all">Todo</button>
+          </div>
+          <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Buscar equipo…" aria-label="Buscar equipo o apuesta"></label>
+          <button class="btn primary top-new" type="button" id="top-new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nueva apuesta</button>
+        </div>
+      </div>
+    </header>
+    <main class="main" id="view"></main>
+  </div>
+</div>
+
+<nav class="tabbar" id="tabbar" aria-label="Secciones"></nav>
+<div id="drawer-root"></div>
+<div class="overlay" id="overlay" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function(){
+"use strict";
+const BOOKS=["Winamax","Sportium","Bet365","Codere","Bwin","Betfair","William Hill","Betway","Luckia","Marca Apuestas","Retabet","Otra"];
+const SPORTS=["Fútbol","Baloncesto","Tenis","Otro"];
+const SCAN_PROMPT=`La imagen es una captura de un boleto de apuestas deportivas de una casa española. Extrae sus datos y responde SOLO con un objeto JSON con esta forma:
+{"book":"Winamax","date":"2026-10-27","stake":10,"odds":7.39,"boost_pct":16,"freebet":false,"selections":[{"event":"Roma – Cagliari","competition":"Serie A","sport":"Fútbol","pick":"Gana Roma","odds":1.25}]}
+Reglas: "book" es el nombre de la casa (Winamax, Sportium, Bet365, Codere, Bwin, Betfair, William Hill, Betway, Luckia, Marca Apuestas, Retabet u otra). "date" en formato AAAA-MM-DD. "stake" es el importe apostado y "odds" la cuota total SIN bonificaciones, ambos como números. "boost_pct" es el porcentaje de un potenciador o Combo Booster si aparece; si no, 0. "freebet" es true solo si es una apuesta gratis. En cada selección: "event" con los dos equipos separados por " – " y nombres normales (no en mayúsculas); "pick" el pronóstico en español breve (Gana Roma, Lazio o empate (X2), Más de 2,5 goles…); "odds" su cuota como número; "sport" uno de Fútbol, Baloncesto, Tenis u Otro; "competition" solo si aparece o es inequívoca por los equipos, si no cadena vacía. Si un dato no aparece, usa null.`;
+const STATUS={pending:"Pendiente",won:"Ganada",lost:"Perdida",void:"Nula",cashout:"Cash out"};
+const VIEWS={panel:["Panel","Resumen de tu actividad"],informe:["Informe","Tu resumen en gráficos"],apuestas:["Apuestas","Todos tus boletos"],analisis:["Análisis","Qué te funciona y qué no"],caja:["Caja","Depósitos, retiradas y saldo por casa"]};
+const SVG=(d,extra="")=>`<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extra}>${d}</svg>`;
+const IC={panel:SVG('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>'),
+  apuestas:SVG('<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 5v12" stroke-dasharray="2 2.2"/>'),
+  analisis:SVG('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+  informe:SVG('<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 17v-3M13 17v-5M16 17v-2"/>'),
+  spark:SVG('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>'),
+  caja:SVG('<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/>'),
+  plus:SVG('<path d="M12 5v14M5 12h14"/>','stroke-width="2.4"'),
+  x:SVG('<path d="M6 6l12 12M18 6 6 18"/>'),
+  edit:SVG('<path d="M4 20h4L19 9l-4-4L4 16z"/>'),
+  copy:SVG('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+  trash:SVG('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
+  undo:SVG('<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>'),
+  chev:SVG('<path d="m9 6 6 6-6 6"/>'),
+  up:'<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 2l4 6H2z" fill="currentColor"/></svg>',
+  down:'<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 10 2 4h8z" fill="currentColor"/></svg>'};
+
+const S={bets:[],moves:[],settings:{},view:"panel",period:"all",status:"all",book:"all",origin:"all",sort:"recent",chartMode:"profit",kDim:"type",meta:{},tag:"all",
+  db:null,dl:null,ready:{bets:false},drawer:null,confirm:null,cashout:false,noDb:null};
+const $=id=>document.getElementById(id);
+const fmt=new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR",minimumFractionDigits:2,maximumFractionDigits:2});
+const fmt0=new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR",maximumFractionDigits:0});
+const eur=n=>(n==null||isNaN(n))?"–":fmt.format(n);
+const sgn=n=>(n==null||isNaN(n))?"–":(n>0?"+":n<0?"−":"")+fmt.format(Math.abs(n));
+const pct=(n,d=1)=>(n==null||isNaN(n))?"–":(n>0?"+":n<0?"−":"")+Math.abs(n).toFixed(d).replace(".",",")+"%";
+const pc0=n=>(n==null||isNaN(n))?"–":Math.round(n)+"%";
+const odd=n=>(n==null||isNaN(n)||!n)?"–":Number(n).toFixed(2).replace(".",",");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const cls=n=>n>0?"pos":n<0?"neg":"";
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const today=()=>iso(new Date());
+const MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const DIA=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+const DIA3=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const fdate=s=>{if(!s)return"–";const [y,m,d]=s.split("-");return +d+" "+MES[+m-1]+(y!==String(new Date().getFullYear())?" "+y.slice(2):"")};
+const dayLabel=s=>{if(!s)return"Sin fecha";const t=new Date(),y=new Date(Date.now()-864e5);if(s===iso(t))return"Hoy";if(s===iso(y))return"Ayer";const d=new Date(s+"T12:00:00");return DIA[d.getDay()]+" "+d.getDate()+" "+MES[d.getMonth()]+(d.getFullYear()!==t.getFullYear()?" "+d.getFullYear():"")};
+const num=v=>{if(v===""||v==null)return null;const n=parseFloat(String(v).replace(/\s/g,"").replace(",","."));return isNaN(n)?null:n};
+const hue=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))%360;return h};
+const BKP=["#3B6FD8","#5B8DEF","#64748B","#4F5D8A","#7C93C9","#475569"],bkc=b=>BKP[Math.floor(hue(b))%BKP.length];
+const bk=b=>`<span class="bk" style="background:${bkc(b)}">${esc((b||"?").slice(0,1).toUpperCase())}</span>`;
+const dec=v=>v==null||v===""?"":String(v).replace(".",",");
+
+/* ---------- Cálculos ---------- */
+const cost=b=>b.freebet?0:(+b.stake||0);
+function winAmt(b){const st=+b.stake||0,o=+b.odds||0,bo=(+b.boost||0)/100,gain=(st*o-st)*(1+bo);return b.freebet?gain:st+gain}
+function ret(b){const st=+b.stake||0;
+  if(b.status==="won")return b.payout!=null?+b.payout:winAmt(b);
+  if(b.status==="lost")return 0;if(b.status==="void")return b.freebet?0:st;if(b.status==="cashout")return +b.payout||0;return null}
+const profitOf=b=>{const r=ret(b);return r==null?null:r-cost(b)};
+function legType(x){const p=String(x.pick||"").toLowerCase(),parts=String(x.event||"").split(/\s+[–-]\s+/).map(s=>s.toLowerCase().trim());
+  if(/o empate|\b1x\b|\bx2\b|doble oportunidad/.test(p))return"Doble oportunidad";
+  if(/c[oó]rner/.test(p))return"Córners";if(/tarjeta/.test(p))return"Tarjetas";
+  if(/ambos marcan|btts/.test(p))return"Ambos marcan";
+  if(/m[aá]s de|menos de|over|under|^\+\d/.test(p))return"Más / menos";
+  if(/h[aá]ndicap|\s-\d/.test(p))return"Hándicap";
+  if(/empate/.test(p))return"Empate";
+  const words=p.replace(/^(gana|ganador:?|victoria( de)?)\s+/,"").split(/\s+/),w=words.find(s=>s.length>2);
+  const hit=s=>!!s&&!!w&&s.includes(w);
+  if(hit(parts[0]))return"Victoria local";if(hit(parts[1]))return"Victoria visitante";
+  if(/^(gana|ganador|victoria)/.test(p))return"Victoria";return"Otros"}
+const band=o=>!o?"Sin cuota":o<1.2?"Menos de 1,20":o<1.4?"1,20 – 1,39":o<1.7?"1,40 – 1,69":o<2?"1,70 – 1,99":"2,00 o más";
+const fmtRun=s=>{const d=new Date(s);if(isNaN(d))return"–";return d.getDate()+" "+MES[d.getMonth()]+", "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};
+const settledDate=b=>b.settled||b.date||"";
+function range(p,shift=0){const n=new Date();n.setHours(12,0,0,0);
+  if(p==="all")return null;
+  if(p==="7"||p==="30"){const d=+p,to=new Date(n.getTime()-shift*d*864e5),from=new Date(to.getTime()-(d-1)*864e5);return{from:iso(from),to:iso(to)}}
+  if(p==="month"){const f=new Date(n.getFullYear(),n.getMonth()-shift,1),t=shift?new Date(n.getFullYear(),n.getMonth()-shift+1,0):n;return{from:iso(f),to:iso(t)}}
+  if(p==="year"){const y=n.getFullYear()-shift;return{from:y+"-01-01",to:shift?y+"-12-31":iso(n)}}
+  return null}
+const inR=(ds,r)=>!r||(!!ds&&ds>=r.from&&ds<=r.to);
+const matchQ=(b,q)=>!q||[b.title,b.notes,b.book,...(b.selections||[]).flatMap(x=>[x.event,x.competition,x.pick])].some(t=>String(t||"").toLowerCase().includes(q));
+function betsIn(r){const q=$("q").value.trim().toLowerCase();return S.bets.filter(b=>inR(b.date,r)&&matchQ(b,q))}
+const periodBets=()=>betsIn(range(S.period));
+const periodMoves=()=>{const r=range(S.period);return S.moves.filter(m=>inR(m.date,r))};
+function stats(bets){let staked=0,returned=0,won=0,lost=0,voids=0,co=0,pend=0,pendStake=0,pendPot=0,oSum=0,oN=0,selW=0,selL=0,best=null;
+  for(const b of bets){const r=ret(b);
+    if(r==null){pend++;pendStake+=cost(b);pendPot+=winAmt(b)}
+    else{const p=r-cost(b);staked+=cost(b);returned+=r;
+      if(b.status==="won")won++;else if(b.status==="lost")lost++;else if(b.status==="void")voids++;else co++;
+      if(!best||p>profitOf(best))best=b}
+    if(+b.odds){oSum+=+b.odds;oN++}
+    for(const x of (b.selections||[])){if(x.result==="won")selW++;else if(x.result==="lost")selL++}}
+  const profit=returned-staked;
+  return{n:bets.length,staked,returned,profit,won,lost,voids,co,pend,pendStake,pendPot,best,
+    yld:staked?profit/staked*100:null,hit:(won+lost)?won/(won+lost)*100:null,avgOdds:oN?oSum/oN:null,selW,selL,selHit:(selW+selL)?selW/(selW+selL)*100:null,closed:won+lost+voids+co}}
+function cashflow(ms){let dep=0,wd=0,bon=0;for(const m of ms){const a=+m.amount||0;if(m.kind==="deposit")dep+=a;else if(m.kind==="withdrawal")wd+=a;else bon+=a}return{dep,wd,bon}}
+const sortSettled=bets=>bets.filter(b=>ret(b)!=null).sort((a,b)=>settledDate(a).localeCompare(settledDate(b))||(a.created||0)-(b.created||0));
+function streaks(bets){const seq=sortSettled(bets).filter(b=>b.status==="won"||b.status==="lost").map(b=>b.status);
+  let cur=0,curT=null,bestW=0,run=0,prev=null;
+  for(const s of seq){run=s===prev?run+1:1;prev=s;if(s==="won")bestW=Math.max(bestW,run)}
+  if(seq.length){curT=seq[seq.length-1];for(let i=seq.length-1;i>=0&&seq[i]===curT;i--)cur++}
+  return{cur,curT,bestW}}
+const monthBets=()=>{const r=range("month");return S.bets.filter(b=>inR(b.date,r))};
+
+/* ---------- Gráfica de línea ---------- */
+const CH={};
+function niceStep(r){const p=Math.pow(10,Math.floor(Math.log10(r||1)));const f=r/p;return(f<1.5?1:f<3.5?2:f<7.5?5:10)*p}
+function smoothPath(P){
+  const n=P.length,f=v=>v.toFixed(1);if(n<3)return "M"+P.map(p=>f(p[0])+" "+f(p[1])).join(" L");
+  const dx=[],m=[],t=[];for(let i=0;i<n-1;i++){dx[i]=P[i+1][0]-P[i][0];m[i]=(P[i+1][1]-P[i][1])/dx[i]}
+  t[0]=m[0];t[n-1]=m[n-2];for(let i=1;i<n-1;i++)t[i]=m[i-1]*m[i]<=0?0:(m[i-1]+m[i])/2;
+  for(let i=0;i<n-1;i++){if(m[i]===0){t[i]=t[i+1]=0;continue}const a=t[i]/m[i],b=t[i+1]/m[i],q=a*a+b*b;if(q>9){const k=3/Math.sqrt(q);t[i]=k*a*m[i];t[i+1]=k*b*m[i]}}
+  let d="M"+f(P[0][0])+" "+f(P[0][1]);
+  for(let i=0;i<n-1;i++){const h=dx[i]/3;d+=" C"+f(P[i][0]+h)+" "+f(P[i][1]+t[i]*h)+" "+f(P[i+1][0]-h)+" "+f(P[i+1][1]-t[i+1]*h)+" "+f(P[i+1][0])+" "+f(P[i+1][1])}
+  return d}
+function lineChart(id,pts,opt={}){
+  if(pts.length<2)return `<div class="empty">${IC.analisis}<b>${opt.emptyT||"Sin datos todavía"}</b>${opt.emptyS||""}</div>`;
+  const nr=innerWidth<560,W=nr?420:760,H=opt.h||260,L=nr?46:54,R=16,T=18,B=28,ys=pts.map(p=>p.v);
+  let lo=Math.min(0,...ys),hi=Math.max(0,...ys);if(hi===lo){hi+=10;lo-=10}const pad=(hi-lo)*.14;hi+=pad;if(lo<0)lo-=pad;
+  const x=i=>L+(W-L-R)*(i/(pts.length-1)),y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
+  const step=niceStep((hi-lo)/4);let g="";
+  for(let v=Math.ceil(lo/step)*step;v<=hi+1e-9;v+=step)g+=`<line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--line-2)" stroke-dasharray="${Math.abs(v)<1e-9?"0":"2 6"}"/><text x="${L-10}" y="${(y(v)+4).toFixed(1)}" text-anchor="end">${esc(fmt0.format(v))}</text>`;
+  const P=ys.map((v,i)=>[x(i),y(v)]),d=smoothPath(P),base=y(0),end=ys[ys.length-1],xe=x(ys.length-1),xs=x(0);
+  const split=!opt.color,col=opt.color||(end>=0?"var(--won)":"var(--lost)"),area=d+" L"+xe.toFixed(1)+" "+base.toFixed(1)+" L"+xs.toFixed(1)+" "+base.toFixed(1)+"Z";
+  CH[id]={pts,x,y,W,H,L,R};
+  const layer=(clip,fill,stroke)=>`<g${clip?` clip-path="url(#${clip}-${id})"`:""}><path d="${area}" fill="url(#${fill}-${id})"/><path d="${d}" fill="none" stroke="${stroke}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/></g>`;
+  const stops=(c,a,b2)=>`<stop offset="0" stop-color="${c}" stop-opacity="${a}"/><stop offset="1" stop-color="${c}" stop-opacity="${b2}"/>`;
+  const defs=split?`<clipPath id="cu-${id}"><rect x="0" y="0" width="${W}" height="${base.toFixed(1)}"/></clipPath><clipPath id="cd-${id}"><rect x="0" y="${base.toFixed(1)}" width="${W}" height="${(H-base).toFixed(1)}"/></clipPath>
+      <linearGradient id="gu-${id}" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${T}" y2="${base.toFixed(1)}">${stops("var(--won)",.32,0)}</linearGradient><linearGradient id="gd-${id}" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${base.toFixed(1)}" y2="${H-B}">${stops("var(--lost)",0,.32)}</linearGradient>`
+    :`<linearGradient id="gf-${id}" x1="0" x2="0" y1="0" y2="1">${stops(col,.3,0)}</linearGradient>`;
+  const body=split?layer("cu","gu","var(--won)")+layer("cd","gd","var(--lost)"):layer("","gf",col);
+  const dc=split?(end>=0?"var(--won)":"var(--lost)"):col;
+  return `<div class="chart" data-chart="${id}"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.label||"Gráfica")}">
+    <defs>${defs}</defs>${g}${body}
+    ${ys.length<=30?ys.map((v,i)=>i?`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.6" fill="var(--card)" stroke="${split?(v>=0?"var(--won)":"var(--lost)"):col}" stroke-width="1.6"/>`:"").join(""):""}
+    <circle cx="${xe.toFixed(1)}" cy="${y(end).toFixed(1)}" r="11" fill="${dc}" opacity=".16"/><circle cx="${xe.toFixed(1)}" cy="${y(end).toFixed(1)}" r="5" fill="${dc}" stroke="var(--card)" stroke-width="2"/>
+    <g class="hv" style="display:none"><line y1="${T}" y2="${H-B}" stroke="var(--faint)" stroke-dasharray="3 4"/><circle r="6" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/></g>
+    <text x="${L}" y="${H-8}">${esc(pts[0].lab||"Inicio")}</text><text x="${W-R}" y="${H-8}" text-anchor="end">${esc(opt.endLab||"")}</text></svg><div class="tip" hidden></div></div>`;
+}
+function bindCharts(){document.querySelectorAll("[data-chart]").forEach(box=>{const c=CH[box.dataset.chart];if(!c)return;
+  const svg=box.querySelector("svg"),tip=box.querySelector(".tip"),g=svg.querySelector(".hv"),ln=g.querySelector("line"),ci=g.querySelector("circle");
+  svg.addEventListener("pointermove",e=>{const r=svg.getBoundingClientRect(),sx=(e.clientX-r.left)/r.width*c.W;
+    let i=Math.round((sx-c.L)/(c.W-c.L-c.R)*(c.pts.length-1));i=Math.max(1,Math.min(c.pts.length-1,i));const p=c.pts[i];
+    g.style.display="";ln.setAttribute("x1",c.x(i));ln.setAttribute("x2",c.x(i));ci.setAttribute("cx",c.x(i));ci.setAttribute("cy",c.y(p.v));
+    tip.hidden=false;tip.style.left=Math.min(86,Math.max(14,c.x(i)/c.W*100))+"%";tip.style.top=(c.y(p.v)/c.H*r.height)+"px";tip.innerHTML=p.tip||esc(eur(p.v))});
+  svg.addEventListener("pointerleave",()=>{g.style.display="none";tip.hidden=true})})}
+
+/* ---------- Panel ---------- */
+function delta(cur,prev,kind){if(S.period==="all"||prev==null||cur==null)return"";const d=cur-prev;
+  const txt=kind==="eur"?sgn(d):(d>0?"+":d<0?"−":"")+Math.abs(d).toFixed(1).replace(".",",")+" pp";
+  return `<span class="delta ${d>0.004?"up":d<-0.004?"down":"eq"}" title="${esc(prevLbl())}">${d>0.004?IC.up:d<-0.004?IC.down:""}${txt}</span>`}
+const prevLbl=()=>({"7":"frente a los 7 días anteriores","30":"frente a los 30 días anteriores",month:"frente al mes anterior",year:"frente al año anterior"})[S.period]||"";
+function profitCurve(bets){const s=sortSettled(bets);let acc=0;const pts=[{v:0,lab:"Inicio"}];
+  for(const b of s){const p=profitOf(b);acc+=p;pts.push({v:acc,tip:`${esc(fdate(settledDate(b)))} · ${esc(b.book)}<br>${esc(sgn(p))} → <b>${esc(sgn(acc))}</b>`})}return pts}
+function bankCurve(){const ev=[];for(const m of S.moves){const a=+m.amount||0;ev.push({d:m.date,c:m.created||0,v:m.kind==="withdrawal"?-a:a,t:(m.kind==="deposit"?"Depósito":m.kind==="withdrawal"?"Retirada":"Bono")+" · "+(m.book||"")})}
+  for(const b of sortSettled(S.bets))ev.push({d:settledDate(b),c:b.created||0,v:profitOf(b),t:"Apuesta · "+(b.book||"")});
+  ev.sort((a,b)=>(a.d||"").localeCompare(b.d||"")||a.c-b.c);let acc=0;const pts=[{v:0,lab:"Inicio"}];
+  for(const e of ev){acc+=e.v;pts.push({v:acc,tip:`${esc(fdate(e.d))} · ${esc(e.t)}<br>${esc(sgn(e.v))} → <b>${esc(eur(acc))}</b>`})}return pts}
+function heatmap(){const days=91,map={};for(const b of S.bets){const p=profitOf(b);if(p==null)continue;const k=settledDate(b);map[k]=(map[k]||0)+p}
+  const end=new Date();end.setHours(12,0,0,0);const start=new Date(end.getTime()-(days-1)*864e5);
+  const pad=(start.getDay()+6)%7;const cells=[];for(let i=0;i<pad;i++)cells.push('<i style="visibility:hidden"></i>');
+  const mx=Math.max(1,...Object.values(map).map(Math.abs));
+  for(let i=0;i<days;i++){const d=new Date(start.getTime()+i*864e5),k=iso(d),v=map[k];
+    let st="";if(v!=null){const a=Math.round(30+Math.min(1,Math.abs(v)/mx)*70);st=`background:color-mix(in srgb,${v>=0?"var(--won)":"var(--lost)"} ${a}%,var(--line-2))`}
+    cells.push(`<i style="${st}" title="${esc(fdate(k))}${v!=null?" · "+esc(sgn(v)):" · sin apuestas cerradas"}"></i>`)}
+  return `<div class="heat-wrap"><div class="heat-days"><span>L</span><span></span><span>X</span><span></span><span>V</span><span></span><span>D</span></div><div class="heat">${cells.join("")}</div></div>
+    <div class="legend"><span><i style="background:var(--won)"></i>Día en positivo</span><span><i style="background:var(--lost)"></i>Día en negativo</span><span><i style="background:var(--line-2)"></i>Sin cierres</span></div>`}
+function limitInfo(){const lim=+S.settings.monthlyLimit||0,used=monthBets().reduce((a,b)=>a+cost(b),0);
+  const p=lim?used/lim*100:0,col=p>=100?"var(--lost)":p>=75?"var(--pend)":"var(--won-hi)";return{lim,used,p,col}}
+function renderSideAuto(){const m=S.meta||{};$("side-auto").innerHTML=`<b>Resultados automáticos</b><span>Cada noche a las 00:40 reviso tus boletos pendientes y marco cada selección.</span><span>${m.lastRun?"Última revisión: "+esc(fmtRun(m.lastRun))+(m.resolved!=null?" · "+esc(m.resolved)+" resueltas":""):"Primera revisión esta noche."}</span>`}
+function renderSideLimit(){const L=limitInfo();
+  $("side-limit").innerHTML=L.lim?`<span class="t">Límite de ${MES[new Date().getMonth()]}</span><span class="v">${eur(L.used)} <span style="font-size:.9rem;color:var(--side-muted)">/ ${esc(fmt0.format(L.lim))}</span></span>
+    <div class="meter"><i style="width:${Math.min(100,L.p).toFixed(0)}%;background:${L.col}"></i></div><span class="s">${L.p>=100?"Has superado tu límite de este mes.":"Te quedan "+eur(Math.max(0,L.lim-L.used))+" este mes."}</span><button type="button" data-settings>Cambiar límite</button>`
+  :`<span class="t">Juego responsable</span><span class="s">Fija un límite mensual de dinero apostado y verás aquí cuánto llevas.</span><button type="button" data-settings>Fijar límite</button>`}
+function skeleton(){return `<section class="kpis">${'<div class="card kpi"><div class="skel" style="width:50%"></div><div class="skel" style="height:30px;width:80%"></div><div class="skel" style="width:60%"></div></div>'.repeat(5)}</section><div class="card" style="padding:18px;display:flex;flex-direction:column;gap:12px"><div class="skel" style="width:30%"></div><div class="skel" style="height:200px"></div></div>`}
+function slipHTML(b){const sels=b.selections||[],w=sels.filter(x=>x.result==="won").length,show=sels.slice(0,5);
+  return `<button class="slip" type="button" data-open="${esc(b.id)}" aria-label="Abrir boleto"><div class="slip-h"><span>${esc(b.book)} · ${esc(b.type||"Simple")}</span><span class="live">En juego</span></div>
+    <div class="slip-t">${esc(b.title||(sels[0]?sels[0].event:"Apuesta"))}</div>
+    ${sels.length?`<ul>${show.map(x=>`<li><span><i class="${esc(x.result||"")}"></i>${esc(x.event)}</span><b>${odd(x.odds)}</b></li>`).join("")}</ul>${sels.length>5?`<div class="slip-more">y ${sels.length-5} selecciones más</div>`:""}`:""}
+    ${sels.length>1?`<div class="slip-bar">${sels.map(x=>`<i class="${esc(x.result||"")}"></i>`).join("")}</div>`:""}
+    <div class="slip-f"><div><span>Stake · cuota</span><b>${eur(+b.stake)}</b> <span style="display:inline;letter-spacing:0;text-transform:none;font-family:var(--f-mono);font-size:.8rem">@${odd(b.odds)}${b.boost?" +"+esc(dec(b.boost))+"%":""}</span></div><div style="text-align:right"><span>${sels.length>1?w+"/"+sels.length+" acertadas · ":""}cobro</span><b class="pot">${eur(winAmt(b))}</b></div></div></button>`}
+function hero2(o){const {all,st,pv,bal,pend,showBank,chart}=o;
+  const h=new Date().getHours(),sal=h<6?"Buenas noches":h<14?"Buenos días":h<21?"Buenas tardes":"Buenas noches";
+  const fecha=new Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"});
+  const big=showBank?eur(bal):sgn(st.profit),bc=showBank?"":cls(st.profit);
+  return `<section class="hero2"><div class="card h2-main">
+    <div class="h2-top"><div><span class="eyebrow">${sal}, Miguel · ${esc(fecha)}</span>
+      <div class="h2-lbl">${showBank?"Saldo estimado en tus casas":"Beneficio neto "+esc(PLAB[S.period])}</div>
+      <div class="h2-val ${bc}">${big}</div>
+      <div class="h2-sub">${showBank?"":delta(st.profit,pv&&pv.profit,"eur")}<span>${eur(st.staked)} apostado · yield <b class="${cls(st.yld)}">${pct(st.yld)}</b> · ${st.n} ${st.n===1?"boleto":"boletos"}</span></div></div>
+      <div class="seg" id="chart-mode"><button type="button" data-v="profit" aria-pressed="${!showBank}">Beneficio</button><button type="button" data-v="bank" aria-pressed="${showBank}"${S.moves.length?"":' disabled title="Añade depósitos en Caja"'}>Saldo</button></div></div>
+    <div class="h2-chart">${chart}</div></div>
+    <aside class="h2-side">${pend[0]?slipHTML(pend[0])+(pend.length>1?`<button class="h2-more" type="button" data-view="apuestas">y ${pend.length-1} ${pend.length===2?"boleto más":"boletos más"} en juego →</button>`:""):`<div class="h2-cta"><b>Sin boletos en juego</b><p>Registra el siguiente en segundos: pega las selecciones y listo.</p><button class="btn primary" type="button" data-new>${IC.plus}Nuevo boleto</button><span class="hint">o pulsa la tecla N</span></div>`}</aside></section>`}
+function renderPanel(){
+  if(S.db&&!S.ready.bets)return skeleton();
+  if(!S.bets.length)return `<div class="empty">${IC.apuestas}<b>Empieza tu libreta</b>Registra tu primera apuesta y aquí verás beneficio, yield, rachas y en qué aciertas más.<button class="btn primary" type="button" data-new>Nueva apuesta</button></div>`;
+  const bets=periodBets(),st=stats(bets),pv=S.period==="all"?null:stats(betsIn(range(S.period,1)));
+  const cf=cashflow(S.moves),all=stats(S.bets),bal=cf.dep-cf.wd+cf.bon+all.profit-all.pendStake;
+  const pend=S.bets.filter(b=>b.status==="pending").sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const sk=streaks(bets),last=sortSettled(bets).slice(-12);
+  const C=2*Math.PI*19,h=st.hit||0;
+  const showBank=S.chartMode==="bank"&&S.moves.length>0;
+  const nClosed=sortSettled(bets).length;
+  const chart=showBank?lineChart("bank",bankCurve(),{label:"Evolución del saldo",color:"var(--accent)",endLab:"Hoy",h:250}):lineChart("profit",profitCurve(bets),{label:"Beneficio acumulado",endLab:nClosed+" cerradas",h:250,emptyT:"Aún no hay apuestas cerradas",emptyS:"La curva aparece cuando marques la primera como ganada, perdida o nula."});
+  return `${hero2({all,st,pv,bal,pend,showBank,chart})}
+  <section class="kpis k4">
+    <div class="card kpi"><span class="lbl">Yield</span><span class="val ${cls(st.yld)}">${pct(st.yld)}</span><span class="foot">${delta(st.yld,pv&&pv.yld,"pp")}<span>beneficio sobre lo apostado</span></span></div>
+    <div class="card kpi"><span class="lbl">Acierto</span><div style="display:flex;gap:12px;align-items:center"><svg class="ring" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="19" stroke="var(--line-2)"/><circle cx="23" cy="23" r="19" stroke="var(--won)" stroke-linecap="round" stroke-dasharray="${(C*h/100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 23 23)"/></svg><span class="val">${pc0(st.hit)}</span></div><span class="foot">${st.won} ganadas · ${st.lost} perdidas ${delta(st.hit,pv&&pv.hit,"pp")}</span></div>
+    <div class="card kpi"><span class="lbl">Saldo estimado</span><span class="val">${S.moves.length?eur(bal):"–"}</span><span class="foot">${S.moves.length?"en todas tus casas":'<button type="button" class="btn sm" data-newmove>Añadir depósito</button>'}</span></div>
+    <div class="card kpi"><span class="lbl">En juego</span><span class="val">${eur(all.pendStake)}</span><span class="foot">${all.pend} ${all.pend===1?"boleto":"boletos"} · cobro posible ${eur(all.pendPot)}</span></div>
+  </section>
+  ${sugCard()}
+  <div class="grid g-main">
+    <section class="card lc" style="overflow:hidden"><div class="card-h" style="padding-bottom:12px"><h2>En juego</h2><span class="aside">${pend.length?eur(all.pendStake)+" arriesgados":"nada pendiente"}</span></div>
+      ${pend.length?`<div class="list" style="border-top:1px solid var(--line)">${pend.slice(0,6).map(rowHTML).join("")}</div>`:`<div class="card-b" style="padding-top:0"><p class="hint">No tienes boletos pendientes.</p></div>`}</section>
+    <section class="card"><div class="card-h"><h2>Forma</h2><span class="aside">${last.length?"últimas "+last.length+" cerradas":"sin cierres"}</span></div>
+      <div class="card-b">
+        ${last.length?`<div class="form">${last.map(b=>`<span class="${b.status==="won"?"W":b.status==="lost"?"L":"V"}" title="${esc(fdate(settledDate(b)))} · ${esc(sgn(profitOf(b)))}">${b.status==="won"?"G":b.status==="lost"?"P":"N"}</span>`).join("")}</div>`:'<p class="hint">Aquí verás tu racha: G, P, N.</p>'}
+        <div class="facts">
+          <div class="fact"><div class="k">Racha actual</div><div class="v ${sk.curT==="won"?"pos":sk.curT==="lost"?"neg":""}">${sk.cur?sk.cur+(sk.curT==="won"?" G":" P"):"–"}</div><div class="s">${sk.curT==="won"?"ganadas seguidas":sk.curT==="lost"?"perdidas seguidas":"sin cierres"}</div></div>
+          <div class="fact"><div class="k">Mejor racha</div><div class="v">${sk.bestW?sk.bestW+" G":"–"}</div><div class="s">ganadas seguidas</div></div>
+          <div class="fact"><div class="k">Mayor premio</div><div class="v ${st.best&&profitOf(st.best)>0?"pos":""}">${st.best&&profitOf(st.best)>0?sgn(profitOf(st.best)):"–"}</div><div class="s">${st.best&&profitOf(st.best)>0?esc(fdate(settledDate(st.best))+" · @"+odd(st.best.odds)):"todavía ninguno"}</div></div>
+          <div class="fact"><div class="k">Cuota media</div><div class="v">${odd(st.avgOdds)}</div><div class="s">prob. implícita ${st.avgOdds?Math.round(100/st.avgOdds)+"%":"–"}</div></div>
+        </div>
+      </div></section>
+  </div>
+  <div class="grid g-2">
+    <section class="card"><div class="card-h"><h2>Beneficio por mes</h2><span class="aside">por fecha de cierre</span></div><div class="card-b">${monthly(bets)}</div></section>
+    <section class="card"><div class="card-h"><h2>Calendario</h2><span class="aside">últimas 13 semanas</span></div><div class="card-b">${heatmap()}</div></section>
+  </div>`;
+}
+
+/* ---------- Apuestas ---------- */
+function rowHTML(b){const sels=b.selections||[],r=ret(b),p=profitOf(b),w=sels.filter(x=>x.result==="won").length,l=sels.filter(x=>x.result==="lost").length;
+  return `<button class="lrow" type="button" data-open="${esc(b.id)}">
+    <span class="when"><span class="st ${esc(b.status)}">${STATUS[b.status]||esc(b.status)}</span><span class="muted" style="font-size:.76rem">${esc(fdate(b.date))}</span></span>
+    <span class="what"><span class="t">${esc(b.title||(sels[0]?sels[0].event+" · "+(sels[0].pick||""):"Apuesta"))}</span>
+      <span class="m">${bk(b.book)}${esc(b.book)} · ${esc(b.type||"Simple")}${sels.length>1?" · "+sels.length+" sel.":""}${b.origin==="claude"?' <span class="tagc">Claude</span>':""}${b.boost?` <span class="tagc" style="color:var(--won);background:var(--won-soft)">+${esc(dec(b.boost))}%</span>`:""}${b.freebet?' <span class="tagw">gratis</span>':""}${(b.tags||[]).map(t=>` <span class="tagx">${esc(t)}</span>`).join("")}${b.oddsEstimated?' <span class="tagw">cuota por confirmar</span>':""}</span></span>
+    <span class="prog">${sels.length>1?`<span class="bars">${sels.map(x=>`<i class="${esc(x.result||"")}"></i>`).join("")}</span><small>${w}/${sels.length} acertadas${l?" · "+l+" falladas":""}</small>`:""}</span>
+    <span class="c-stake mono">${eur(+b.stake)}</span>
+    <span class="c-odds mono">@${odd(b.odds)}</span>
+    <span class="res ${cls(p)}">${r==null?eur(winAmt(b)):sgn(p)}<small>${r==null?"posible cobro":b.status==="void"?"devuelto":b.status==="cashout"?"cash out":"resultado"}</small></span>
+    <span class="chev">${IC.chev}</span></button>`}
+function listBets(){const bets=periodBets().filter(b=>(S.status==="all"||b.status===S.status)&&(S.book==="all"||b.book===S.book)&&(S.origin==="all"||(S.origin==="claude"?b.origin==="claude":b.origin!=="claude"))&&(S.tag==="all"||(b.tags||[]).includes(S.tag)));
+  const k={recent:(a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created||0)-(a.created||0),stake:(a,b)=>(+b.stake||0)-(+a.stake||0),odds:(a,b)=>(+b.odds||0)-(+a.odds||0),result:(a,b)=>(profitOf(b)??-1e9)-(profitOf(a)??-1e9)}[S.sort];
+  return bets.sort(k)}
+const LHEAD='<div class="lhead"><span>Estado</span><span>Apuesta</span><span>Selecciones</span><span>Stake</span><span>Cuota</span><span class="r">Resultado</span><span></span></div>';
+function renderApuestas(){
+  if(S.db&&!S.ready.bets)return skeleton();
+  const base=periodBets(),cnt=s=>s==="all"?base.length:base.filter(b=>b.status===s).length,bets=listBets();
+  const books=[...new Set(S.bets.map(b=>b.book).filter(Boolean))].sort();
+  const st=stats(bets);let body;
+  if(!S.bets.length)body=`<div class="empty">${IC.apuestas}<b>Tu primera apuesta</b>Apunta casa, stake, cuota y cada selección. Luego marca qué acertaste.<button class="btn primary" type="button" data-new>Nueva apuesta</button></div>`;
+  else if(!bets.length)body=`<div class="empty">${IC.apuestas}<b>Nada con estos filtros</b><button class="btn" type="button" data-reset>Quitar filtros</button></div>`;
+  else if(S.sort==="recent"){const groups=[];for(const b of bets){const g=groups[groups.length-1];if(g&&g.d===b.date)g.items.push(b);else groups.push({d:b.date,items:[b]})}
+    body=`<section class="card lc" style="overflow:hidden">${LHEAD}${groups.map(g=>{const s=stats(g.items);
+      return `<div class="lday"><span>${esc(dayLabel(g.d))}</span><b>${s.n} · ${eur(g.items.reduce((a,b)=>a+(+b.stake||0),0))}${s.closed?` · <span class="${cls(s.profit)}">${sgn(s.profit)}</span>`:""}</b></div>${g.items.map(rowHTML).join("")}`}).join("")}</section>`}
+  else body=`<section class="card lc" style="overflow:hidden">${LHEAD}<div class="list">${bets.map(rowHTML).join("")}</div></section>`;
+  return `<div class="listbar">
+    <div class="stabs" id="stabs">${[["all","Todas"],["pending","En juego"],["won","Ganadas"],["lost","Perdidas"],["void","Nulas"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${S.status===v}">${l} <span>${cnt(v)}</span></button>`).join("")}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <select class="sel-in" id="f-book" aria-label="Casa"><option value="all">Todas las casas</option>${books.map(b=>`<option value="${esc(b)}"${S.book===b?" selected":""}>${esc(b)}</option>`).join("")}</select>
+      <select class="sel-in" id="f-origin" aria-label="Origen"><option value="all">Claude y mías</option><option value="claude"${S.origin==="claude"?" selected":""}>De Claude</option><option value="mine"${S.origin==="mine"?" selected":""}>Mías</option></select>
+      ${(()=>{const tg=[...new Set(S.bets.flatMap(b=>b.tags||[]))].sort();return tg.length?`<select class="sel-in" id="f-tag" aria-label="Etiqueta"><option value="all">Todas las etiquetas</option>${tg.map(t=>`<option value="${esc(t)}"${S.tag===t?" selected":""}>#${esc(t)}</option>`).join("")}</select>`:""})()}
+      <select class="sel-in" id="f-sort" aria-label="Ordenar"><option value="recent">Más recientes</option><option value="stake"${S.sort==="stake"?" selected":""}>Mayor stake</option><option value="odds"${S.sort==="odds"?" selected":""}>Mayor cuota</option><option value="result"${S.sort==="result"?" selected":""}>Mejor resultado</option></select>
+    </div></div>
+  ${bets.length?`<p class="hint">${bets.length} ${bets.length===1?"boleto":"boletos"} · ${eur(st.staked+st.pendStake)} apostados · resultado <span class="${cls(st.profit)}">${sgn(st.profit)}</span>${st.yld!=null?" · yield "+pct(st.yld):""}</p>`:""}
+  ${body}`;
+}
+
+/* ---------- Análisis ---------- */
+function duel(bets){const c=stats(bets.filter(b=>b.origin==="claude")),m=stats(bets.filter(b=>b.origin!=="claude"));
+  const row=(lab,a,b,fa,fb,scale,cmp=true)=>{const mx=scale||Math.max(Math.abs(a||0),Math.abs(b||0),1),wa=cmp&&a!=null&&b!=null&&a>b,wb=cmp&&a!=null&&b!=null&&b>a;
+    return `<div class="drow"><div class="a"><span class="${wa?"win":""}">${fa}</span><span class="tr"><i style="width:${(Math.abs(a||0)/mx*100).toFixed(0)}%"></i></span></div><span class="lab">${lab}</span><div class="b"><span class="tr"><i style="width:${(Math.abs(b||0)/mx*100).toFixed(0)}%"></i></span><span class="${wb?"win":""}">${fb}</span></div></div>`};
+  return `<div class="duel-head"><div class="who"><span class="av c">C</span>Claude</div><span class="vs">VS</span><div class="who right">Mías<span class="av m">M</span></div></div>
+    ${row("Boletos",c.n,m.n,c.n,m.n,0,false)}
+    ${row("Beneficio",c.profit,m.profit,`<span class="${cls(c.profit)}">${sgn(c.profit)}</span>`,`<span class="${cls(m.profit)}">${sgn(m.profit)}</span>`)}
+    ${row("Yield",c.yld,m.yld,pct(c.yld),pct(m.yld))}
+    ${row("Acierto",c.hit,m.hit,pc0(c.hit),pc0(m.hit),100)}
+    ${row("Selecciones",c.selHit,m.selHit,pc0(c.selHit),pc0(m.selHit),100)}
+    ${row("Cuota media",c.avgOdds,m.avgOdds,odd(c.avgOdds),odd(m.avgOdds),0,false)}`}
+function bucketTable(bets,buckets,fn,label){
+  const rows=buckets.map(([l,test])=>{const arr=bets.filter(b=>test(fn(b)));return[l,arr,stats(arr)]}).filter(r=>r[1].length);
+  if(!rows.length)return'<p class="hint">Sin datos en este periodo.</p>';
+  return `<div class="tablebox"><table><thead><tr><th>${label}</th><th class="r">Boletos</th><th class="r">Acierto</th><th class="r">Esperado</th><th class="r">Beneficio</th><th class="r">Yield</th></tr></thead><tbody>${rows.map(([l,arr,s])=>{
+    const settled=arr.filter(b=>b.status==="won"||b.status==="lost"),exp=settled.length?settled.reduce((a,b)=>a+100/(+b.odds||1),0)/settled.length:null,df=s.hit!=null&&exp!=null?s.hit-exp:null;
+    return `<tr><td>${esc(l)}</td><td class="r">${s.n}</td><td class="r"><b>${pc0(s.hit)}</b></td><td class="r muted">${pc0(exp)}${df!=null?` <span class="${cls(df)}" style="font-size:.74rem">(${df>=0?"+":"−"}${Math.abs(Math.round(df))})</span>`:""}</td><td class="r ${cls(s.profit)}">${sgn(s.profit)}</td><td class="r">${pct(s.yld)}</td></tr>`}).join("")}</tbody></table></div>`}
+function groupTable(bets,keyFn,label,mode,order){const g={};for(const b of bets){const k=keyFn(b)||"–";(g[k]=g[k]||[]).push(b)}
+  let rows=Object.entries(g).map(([k,a])=>[k,stats(a)]);rows=order?rows.sort((a,b)=>order.indexOf(a[0])-order.indexOf(b[0])):rows.sort((a,b)=>b[1].n-a[1].n);
+  if(!rows.length)return'<p class="hint">Sin datos en este periodo.</p>';
+  const mx=Math.max(...rows.map(r=>Math.abs(r[1].profit)),1);
+  return `<div class="tablebox"><table><thead><tr><th>${label}</th><th class="r">Boletos</th><th class="r">Apostado</th><th class="r">Beneficio</th><th></th><th class="r">Yield</th><th class="r">Acierto</th></tr></thead><tbody>${rows.map(([k,s])=>{const w=Math.abs(s.profit)/mx*50;
+    return `<tr><td>${mode==="book"?bk(k):""}${esc(k)}</td><td class="r">${s.n}</td><td class="r">${eur(s.staked+s.pendStake)}</td><td class="r ${cls(s.profit)}">${sgn(s.profit)}</td><td><div class="mini"><span style="${s.profit>=0?`left:50%;width:${w}%;background:var(--won)`:`right:50%;width:${w}%;background:var(--lost)`}"></span></div></td><td class="r">${pct(s.yld)}</td><td class="r">${pc0(s.hit)}</td></tr>`}).join("")}</tbody></table></div>`}
+function selTable(bets,keyFn,label){const g={};for(const b of bets)for(const x of (b.selections||[])){if(x.result!=="won"&&x.result!=="lost")continue;const k=keyFn(x)||"–";g[k]=g[k]||{w:0,l:0,o:0,n:0};x.result==="won"?g[k].w++:g[k].l++;if(+x.odds){g[k].o+=+x.odds;g[k].n++}}
+  const rows=Object.entries(g).sort((a,b)=>(b[1].w+b[1].l)-(a[1].w+a[1].l)).slice(0,10);
+  if(!rows.length)return'<p class="hint">Marca el resultado de cada selección en tus boletos para ver este desglose.</p>';
+  return `<div class="tablebox"><table><thead><tr><th>${label}</th><th class="r">✓</th><th class="r">✕</th><th>Acierto</th><th class="r">Cuota media</th></tr></thead><tbody>${rows.map(([k,v])=>{const h=v.w/(v.w+v.l)*100;
+    return `<tr><td>${esc(k)}</td><td class="r pos">${v.w}</td><td class="r neg">${v.l}</td><td><div style="display:flex;gap:8px;align-items:center"><div class="mini" style="flex:1"><span style="left:0;width:${h}%;background:var(--won)"></span></div><span>${Math.round(h)}%</span></div></td><td class="r mono">${v.n?odd(v.o/v.n):"–"}</td></tr>`}).join("")}</tbody></table></div>`}
+function monthly(bets){const m={};for(const b of bets){const p=profitOf(b);if(p==null)continue;const k=settledDate(b).slice(0,7);if(k)m[k]=(m[k]||0)+p}
+  const keys=Object.keys(m).sort().slice(-12);if(!keys.length)return'<p class="hint">Aparecerá con tu primera apuesta cerrada.</p>';
+  const mx=Math.max(...keys.map(k=>Math.abs(m[k])),1),W=420,H=170,bw=Math.min(40,(W-20)/keys.length-8);
+  const allPos=keys.every(k=>m[k]>=0),allNeg=keys.every(k=>m[k]<=0),mid=allPos?H-4:allNeg?18:H/2,room=allPos?H-26:allNeg?H-40:H/2-18;
+  return `<svg viewBox="0 0 ${W} ${H+20}" style="width:100%;height:auto" role="img" aria-label="Beneficio por mes"><line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>${keys.map((k,i)=>{const v=m[k],h=Math.abs(v)/mx*room,cx=10+(i+.5)*(W-20)/keys.length;
+    return `<rect x="${(cx-bw/2).toFixed(1)}" y="${(v>=0?mid-h:mid).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(h,1.5).toFixed(1)}" rx="4" fill="${v>=0?"var(--won)":"var(--lost)"}"><title>${MES[+k.slice(5)-1]} ${k.slice(0,4)}: ${esc(sgn(v))}</title></rect>
+    <text class="axis" x="${cx.toFixed(1)}" y="${(v>=0?mid-h-5:mid+h+13).toFixed(1)}" text-anchor="middle" style="fill:var(--muted)">${Math.round(v)} €</text><text class="axis" x="${cx.toFixed(1)}" y="${H+15}" text-anchor="middle">${MES[+k.slice(5)-1]}</text>`}).join("")}</svg>`}
+function killerCard(bets){
+  const combos=bets.filter(b=>(b.selections||[]).length>1),legs=[];let one=0,prize=0,lostC=0;
+  for(const b of combos){const sels=b.selections,fails=sels.filter(x=>x.result==="lost").length;
+    for(const x of sels)if(x.result==="won"||x.result==="lost")legs.push({x,b,only:x.result==="lost"&&fails===1});
+    if(b.status==="lost"){lostC++;if(fails===1){one++;prize+=winAmt(b)-cost(b)}}}
+  const head=`<div class="card-h"><h2>La pata que te mata</h2><span class="aside">${legs.length?legs.length+" selecciones cerradas en "+combos.length+" combinadas":"combinadas"}</span></div>`;
+  if(!legs.length)return `<section class="card">${head}<div class="card-b"><p class="hint">Marca el resultado de cada selección de tus combinadas y aquí verás qué tipo de pata te tumba los boletos.</p></div></section>`;
+  const dims={type:["Tipo","Tipo de apuesta",L=>legType(L.x)],comp:["Competición","Competición",L=>L.x.competition||"Sin competición"],sport:["Deporte","Deporte",L=>L.x.sport||"Otro"],band:["Cuota","Cuota de la pata",L=>band(+L.x.odds)]};
+  const group=f=>{const g={};for(const L of legs){const k=f(L);g[k]=g[k]||{n:0,f:0,only:0};g[k].n++;if(L.x.result==="lost")g[k].f++;if(L.only)g[k].only++}return g};
+  let sus=null;for(const [,[,dl,f]] of Object.entries(dims).filter(([k])=>k!=="sport"))for(const [k,v] of Object.entries(group(f))){if(!v.f)continue;const sc=v.only*2+v.f/v.n*(v.n>=3?1:.5);if(!sus||sc>sus.sc)sus={k,dl,sc,...v}}
+  const [,dl,fn]=dims[S.kDim];const rows=Object.entries(group(fn)).map(([k,v])=>({k,...v,rate:v.f/v.n*100})).sort((a,b)=>b.only-a.only||b.rate-a.rate||b.n-a.n);
+  return `<section class="card">${head}<div class="card-b"><div class="grid g-2" style="gap:16px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="callout"><span class="big">${one}</span><p>${one===1?"combinada perdida":"combinadas perdidas"} <b>por una sola pata</b>${lostC?" de "+lostC+" perdidas":""}.${one?" Te dejaron sin <b>"+eur(prize)+"</b> de beneficio.":""}</p></div>
+      ${sus?`<div class="suspect"><span class="ic">!</span><div><div class="k">Sospechoso habitual · ${esc(sus.dl)}</div><div style="font-weight:600">${esc(sus.k)}</div><div class="hint">Falla el ${Math.round(sus.f/sus.n*100)}% de las veces (${sus.f} de ${sus.n})${sus.only?" y fue la única pata fallada en "+sus.only+(sus.only===1?" boleto":" boletos"):""}.</div></div></div>`:'<p class="hint">Todavía no has fallado ninguna pata.</p>'}
+      <p class="hint">"Única fallada" cuenta los boletos que habrías ganado si esa pata hubiera entrado. Con pocas apuestas, tómalo como una pista y no como una regla.</p>
+    </div>
+    <div style="min-width:0"><div class="seg" id="kdim" style="margin-bottom:10px;flex-wrap:wrap">${Object.entries(dims).map(([k,[l]])=>`<button type="button" data-v="${k}" aria-pressed="${S.kDim===k}">${l}</button>`).join("")}</div>
+      <div class="tablebox"><table><thead><tr><th>${esc(dl)}</th><th class="r">Patas</th><th class="r">Falladas</th><th>Tasa de fallo</th><th class="r">Única fallada</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.k)}</td><td class="r">${r.n}</td><td class="r ${r.f?"neg":""}">${r.f}</td><td><div style="display:flex;gap:8px;align-items:center"><div class="mini" style="flex:1"><span style="left:0;width:${r.rate}%;background:var(--lost)"></span></div><span>${Math.round(r.rate)}%</span></div></td><td class="r"><b>${r.only||"–"}</b></td></tr>`).join("")}</tbody></table></div></div>
+  </div></div></section>`}
+function clvCard(bets){const legs=[];for(const b of bets)for(const x of (b.selections||[]))if(+x.close&&+x.odds)legs.push({x,v:(+x.odds/+x.close-1)*100});
+  const head='<div class="card-h"><h2>Valor frente al cierre</h2><span class="aside">CLV</span></div>';
+  if(!legs.length)return `<section class="card">${head}<div class="card-b"><p class="hint">Apunta la cuota de cierre de tus selecciones (la última antes de empezar el partido) en la ficha de cada boleto. Si de forma sostenida coges cuotas más altas que las de cierre, estás apostando con valor aunque a corto plazo pierdas.</p></div></section>`;
+  const avg=legs.reduce((a,l)=>a+l.v,0)/legs.length,beat=legs.filter(l=>l.v>0).length,g={};
+  for(const l of legs){const k=l.x.competition||"Sin competición";(g[k]=g[k]||[]).push(l.v)}
+  return `<section class="card">${head}<div class="card-b"><div class="facts"><div class="fact"><div class="k">CLV medio</div><div class="v ${cls(avg)}">${pct(avg)}</div><div class="s">${avg>0?"coges mejores cuotas que el mercado":"el mercado te gana la cuota"}</div></div><div class="fact"><div class="k">Superas el cierre</div><div class="v">${Math.round(beat/legs.length*100)}%</div><div class="s">${beat} de ${legs.length} selecciones</div></div></div>
+    <div class="tablebox"><table><thead><tr><th>Competición</th><th class="r">Selecciones</th><th class="r">CLV medio</th></tr></thead><tbody>${Object.entries(g).sort((a,b)=>b[1].length-a[1].length).map(([k,a])=>{const m=a.reduce((s,v)=>s+v,0)/a.length;return `<tr><td>${esc(k)}</td><td class="r">${a.length}</td><td class="r ${cls(m)}">${pct(m)}</td></tr>`}).join("")}</tbody></table></div>
+    <p class="hint">CLV de una selección = tu cuota ÷ cuota de cierre − 1. Es la métrica que usan los apostadores profesionales para saber si tienen ventaja real.</p></div></section>`}
+function tagCard(bets){const ex=[];for(const b of bets)for(const t of (b.tags||[]))ex.push({...b,_tag:t});
+  return `<section class="card"><div class="card-h"><h2>Por etiqueta</h2><span class="aside">tus propias categorías</span></div><div class="card-b">${ex.length?groupTable(ex,b=>b._tag,"Etiqueta"):'<p class="hint">Añade etiquetas a tus boletos ("copas", "valor", "corazonada"…) al crearlos o editarlos para comparar qué estrategia te funciona.</p>'}</div></section>`}
+const PLAB={"7":"en los últimos 7 días","30":"en los últimos 30 días",month:"este mes",year:"este año",all:"desde que empezaste"};
+function donut(segs,center,sub){const tot=segs.reduce((a,s)=>a+s.v,0);if(!tot)return'<p class="hint">Sin datos en este periodo.</p>';
+  const R=52,C=2*Math.PI*R,live=segs.filter(s=>s.v>0),gap=live.length>1?2.5:0;let off=0;
+  const arcs=live.map(s=>{const len=s.v/tot*C,a=`<circle cx="66" cy="66" r="${R}" fill="none" stroke="${s.color}" stroke-width="15" stroke-dasharray="${Math.max(.1,len-gap).toFixed(2)} ${(C-len+gap).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 66 66)"><title>${esc(s.label)}: ${esc(s.fmt||s.v)}</title></circle>`;off+=len;return a}).join("");
+  return `<div class="donut"><svg viewBox="0 0 132 132" role="img" aria-label="${esc(sub)}: ${esc(center)}"><circle cx="66" cy="66" r="${R}" fill="none" stroke="var(--line-2)" stroke-width="15"/>${arcs}<text x="66" y="68" text-anchor="middle" class="dc">${esc(center)}</text><text x="66" y="84" text-anchor="middle" class="ds">${esc(sub.toUpperCase())}</text></svg>
+    <ul class="dleg">${segs.map(s=>`<li><i style="background:${s.color}"></i><span class="nm">${esc(s.label)}</span><b>${esc(s.fmt||s.v)}</b></li>`).join("")}</ul></div>`}
+function flowBuckets(bets){const mode=S.period==="7"?"day":(S.period==="30"||S.period==="month")?"week":"month";
+  const key=ds=>{if(!ds)return null;if(mode==="month")return ds.slice(0,7);if(mode==="day")return ds;const d=new Date(ds+"T12:00:00");return iso(new Date(d.getTime()-((d.getDay()+6)%7)*864e5))};
+  const lab=k=>mode==="month"?MES[+k.slice(5,7)-1]+(k.slice(0,4)!==String(new Date().getFullYear())?" "+k.slice(2,4):""):mode==="day"?DIA3[new Date(k+"T12:00:00").getDay()]+" "+(+k.slice(8)):(+k.slice(8))+" "+MES[+k.slice(5,7)-1];
+  const g={};for(const b of bets){const k=key(b.date);if(!k)continue;g[k]=g[k]||{staked:0,ret:0,pend:0};const r=ret(b);if(r==null)g[k].pend+=cost(b);else{g[k].staked+=cost(b);g[k].ret+=r}}
+  return{mode,rows:Object.keys(g).sort().slice(-12).map(k=>({lab:lab(k),...g[k]}))}}
+function flowChart(fb){const bk=fb.rows;if(!bk.length)return'<p class="hint">Sin apuestas en este periodo.</p>';
+  const W=760,H=250,L=58,R=10,T=26,B=28,mx=Math.max(1,...bk.flatMap(b=>[b.staked+b.pend,b.ret])),step=niceStep(mx/4),top=Math.ceil(mx/step)*step,y=v=>T+(H-T-B)*(1-v/top),bw=(W-L-R)/bk.length,w=Math.min(26,bw*.3);
+  let g="";for(let v=0;v<=top+1e-9;v+=step)g+=`<line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--line-2)"/><text x="${L-8}" y="${(y(v)+4).toFixed(1)}" text-anchor="end">${esc(fmt0.format(v))}</text>`;
+  const bars=bk.map((b,i)=>{const cx=L+i*bw+bw/2,net=b.ret-b.staked,ys=y(b.staked),yp=y(b.staked+b.pend),yr=y(b.ret);
+    return `<rect x="${(cx-w-2).toFixed(1)}" y="${yp.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(0,ys-yp).toFixed(1)}" rx="4" fill="var(--accent)" opacity=".35"><title>En juego: ${esc(eur(b.pend))}</title></rect><rect x="${(cx-w-2).toFixed(1)}" y="${ys.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(0,H-B-ys).toFixed(1)}" rx="4" fill="var(--accent)"><title>Apostado y cerrado: ${esc(eur(b.staked))}</title></rect>
+    <rect x="${(cx+2).toFixed(1)}" y="${yr.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(0,H-B-yr).toFixed(1)}" rx="4" fill="var(--won)"><title>Cobrado: ${esc(eur(b.ret))}</title></rect>
+    ${b.staked?`<text x="${cx.toFixed(1)}" y="${(Math.min(yp,yr)-8).toFixed(1)}" text-anchor="middle" style="fill:${net>=0?"var(--won)":"var(--lost)"};font-weight:600">${net>=0?"+":"−"}${Math.abs(Math.round(net))}</text>`:""}
+    <text x="${cx.toFixed(1)}" y="${H-8}" text-anchor="middle">${esc(b.lab)}</text>`}).join("");
+  return `<div class="chart flow"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Apostado frente a cobrado">${g}${bars}</svg></div><div class="legend"><span><i style="background:var(--accent)"></i>Apostado</span><span><i style="background:var(--accent);opacity:.35"></i>En juego</span><span><i style="background:var(--won)"></i>Cobrado</span><span>Encima, el beneficio neto en €</span></div>`}
+function oddsDist(bets){const ob=[["Menos de 2",o=>o<2],["2 – 3,99",o=>o>=2&&o<4],["4 – 7,99",o=>o>=4&&o<8],["8 – 14,99",o=>o>=8&&o<15],["15 o más",o=>o>=15]];
+  const rows=ob.map(([l,t])=>{const a=bets.filter(b=>t(+b.odds||0));return{l,n:a.length,w:a.filter(b=>b.status==="won").length,lo:a.filter(b=>b.status==="lost").length,p:a.filter(b=>b.status==="pending").length,v:a.filter(b=>b.status==="void"||b.status==="cashout").length}}).filter(r=>r.n);
+  if(!rows.length)return'<p class="hint">Sin datos en este periodo.</p>';const mx=Math.max(...rows.map(r=>r.n));
+  const seg=(n,c,t)=>n?`<i style="width:${(n/mx*100).toFixed(1)}%;background:${c}" title="${t}: ${n}"></i>`:"";
+  return `<div class="stack">${rows.map(r=>`<div class="srow"><span class="lab">${esc(r.l)}</span><span class="bar">${seg(r.w,"var(--won)","Ganados")}${seg(r.lo,"var(--lost)","Perdidos")}${seg(r.v,"var(--void)","Nulos")}${seg(r.p,"var(--accent)","En juego")}</span><span class="n">${r.n} ${r.n===1?"boleto":"bol."}</span></div>`).join("")}</div>
+  <div class="legend"><span><i style="background:var(--won)"></i>Ganados</span><span><i style="background:var(--lost)"></i>Perdidos</span><span><i style="background:var(--void)"></i>Nulos</span><span><i style="background:var(--accent)"></i>En juego</span></div>`}
+function compBars(bets){const g={};for(const b of bets)for(const x of (b.selections||[])){if(x.result!=="won"&&x.result!=="lost")continue;const k=x.competition||"Sin competición";g[k]=g[k]||{w:0,n:0};g[k].n++;if(x.result==="won")g[k].w++}
+  const rows=Object.entries(g).sort((a,b)=>b[1].n-a[1].n||b[1].w/b[1].n-a[1].w/a[1].n).slice(0,8);
+  if(!rows.length)return'<p class="hint">Marca el resultado de cada selección para ver en qué competiciones aciertas más.</p>';
+  return `<div class="stack">${rows.map(([k,v])=>{const h=v.w/v.n*100,c=h>=75?"var(--won)":h>=50?"var(--accent)":"var(--lost)";return `<div class="srow"><span class="lab">${esc(k)}</span><span class="bar"><i style="width:${h.toFixed(1)}%;background:${c}"></i></span><span class="n">${Math.round(h)}% · ${v.w}/${v.n}</span></div>`}).join("")}</div>`}
+function highlights(bets){const s=bets.filter(b=>ret(b)!=null);if(!s.length)return'<p class="hint">Aparecerán cuando cierres tu primer boleto del periodo.</p>';
+  const by=f=>s.slice().sort(f)[0],best=by((a,b)=>profitOf(b)-profitOf(a)),worst=by((a,b)=>profitOf(a)-profitOf(b)),won=s.filter(b=>b.status==="won"),hi=won.slice().sort((a,b)=>(+b.odds||0)-(+a.odds||0))[0];
+  const name=b=>b.title||((b.selections||[])[0]||{}).event||"Apuesta";
+  const item=(bg,fg,ic,k,b,v,vc)=>`<button type="button" data-open="${esc(b.id)}"><span class="ic" style="background:${bg};color:${fg}">${ic}</span><span style="min-width:0"><span class="k">${k}</span><span class="t" style="display:block">${esc(name(b))}</span><span class="hint">${esc(fdate(settledDate(b)))} · ${esc(b.book)}</span></span><span class="v ${vc}">${v}</span></button>`;
+  let h=item("var(--won-soft)","var(--won)","↑","Mejor boleto",best,sgn(profitOf(best)),cls(profitOf(best)));
+  if(worst!==best)h+=item("var(--lost-soft)","var(--lost)","↓","Peor boleto",worst,sgn(profitOf(worst)),cls(profitOf(worst)));
+  if(hi)h+=item("var(--accent-soft)","var(--accent)","@","Mayor cuota acertada",hi,"@"+odd(hi.odds),"");
+  return `<div class="hl">${h}</div>`}
+function conclusions(bets,st){const out=[];
+  if(st.closed)out.push(st.profit>=0?`Vas en positivo: <b class="pos">${sgn(st.profit)}</b> con un yield del <b>${pct(st.yld)}</b> sobre ${eur(st.staked)} apostados.`:`Vas en negativo: <b class="neg">${sgn(st.profit)}</b> (yield ${pct(st.yld)}) sobre ${eur(st.staked)} apostados.`);
+  else out.push("Todavía no hay boletos cerrados en este periodo, así que las conclusiones llegarán cuando se resuelvan.");
+  if(st.selW+st.selL>=5&&st.hit!=null&&st.selHit-st.hit>15)out.push(`Aciertas el <b>${pc0(st.selHit)}</b> de las selecciones pero solo el <b>${pc0(st.hit)}</b> de los boletos: cada pata que añades reduce mucho la probabilidad de cobrar.`);
+  const c=stats(bets.filter(b=>b.origin==="claude")),m=stats(bets.filter(b=>b.origin!=="claude"));
+  if(c.closed&&m.closed)out.push(c.profit>=m.profit?`Las apuestas de Claude rinden más que las tuyas (${sgn(c.profit)} frente a ${sgn(m.profit)}).`:`Tus apuestas rinden más que las de Claude (${sgn(m.profit)} frente a ${sgn(c.profit)}).`);
+  const bk={};for(const b of bets){if(ret(b)==null)continue;(bk[b.book]=bk[b.book]||[]).push(b)}const bks=Object.entries(bk).map(([k,a])=>[k,stats(a)]).sort((a,b)=>b[1].profit-a[1].profit);
+  if(bks.length>1)out.push(`Tu mejor casa en este periodo es <b>${esc(bks[0][0])}</b> (${sgn(bks[0][1].profit)}) y la peor, <b>${esc(bks[bks.length-1][0])}</b> (${sgn(bks[bks.length-1][1].profit)}).`);
+  if(st.avgOdds&&st.hit!=null&&st.won+st.lost>=4){const imp=100/st.avgOdds;out.push(st.hit>imp?`Aciertas más de lo que marcan tus cuotas (${pc0(st.hit)} frente a un ${pc0(imp)} implícito): buena señal si se mantiene.`:`Aciertas menos de lo que marcan tus cuotas (${pc0(st.hit)} frente a un ${pc0(imp)} implícito): revisa qué tipo de pata falla en Análisis.`)}
+  const L=limitInfo();if(L.lim&&L.p>=75)out.push(`Llevas el <b>${Math.round(L.p)}%</b> de tu límite mensual (${eur(L.used)} de ${eur(L.lim)}).`);
+  if(st.pend)out.push(`Tienes ${st.pend} ${st.pend===1?"boleto":"boletos"} en juego con ${eur(st.pendStake)} arriesgados; si salen, cobrarías ${eur(st.pendPot)}.`);
+  return `<ul class="concl">${out.slice(0,6).map(t=>`<li><span>${t}</span></li>`).join("")}</ul>`}
+function aiBox(){if(!S.sample)return"";
+  return `<div class="ai"><div class="ai-h"><b>${IC.spark}Análisis de Claude</b>${S.aiBusy?'<span class="hint">Pensando…</span>':`<button class="btn sm primary" type="button" data-ai>${S.aiText?"Volver a analizar":"Pedir análisis"}</button>`}</div>
+    ${S.aiText?`<div class="ai-out" id="ai-out">${esc(S.aiText)}</div>`:S.aiBusy?'<div class="ai-out" id="ai-out"></div>':`<p class="hint">${esc(S.aiErr||"Claude lee los números de este informe y te da su lectura y consejos de gestión. Usa un poco de tu uso de Claude.")}</p>`}</div>`}
+async function askAI(){if(!S.sample||S.aiBusy)return;const bets=periodBets(),st=stats(bets);
+  const grp=(f)=>{const g={};for(const b of bets){const k=f(b);(g[k]=g[k]||[]).push(b)}return Object.fromEntries(Object.entries(g).map(([k,a])=>{const s=stats(a);return[k,{boletos:s.n,beneficio:+s.profit.toFixed(2),yield:s.yld==null?null:+s.yld.toFixed(1),acierto:s.hit==null?null:Math.round(s.hit)}]}))};
+  const comp={};for(const b of bets)for(const x of (b.selections||[])){if(x.result!=="won"&&x.result!=="lost")continue;const k=x.competition||"–";comp[k]=comp[k]||{acertadas:0,falladas:0};x.result==="won"?comp[k].acertadas++:comp[k].falladas++}
+  const legs={};for(const b of bets){const n=(b.selections||[]).length||1,k=n<=1?"simple":n<=3?"2-3":n<=6?"4-6":n<=10?"7-10":"11+";(legs[k]=legs[k]||[]).push(b)}
+  const data={periodo:PLAB[S.period],boletos:st.n,cerrados:st.closed,en_juego:st.pend,apostado_cerrado:+st.staked.toFixed(2),cobrado:+st.returned.toFixed(2),beneficio:+st.profit.toFixed(2),yield_pct:st.yld==null?null:+st.yld.toFixed(1),acierto_boletos_pct:st.hit==null?null:Math.round(st.hit),acierto_selecciones_pct:st.selHit==null?null:Math.round(st.selHit),cuota_media:st.avgOdds==null?null:+st.avgOdds.toFixed(2),por_casa:grp(b=>b.book||"–"),por_origen:grp(b=>b.origin==="claude"?"Claude":"Mías"),por_num_selecciones:Object.fromEntries(Object.entries(legs).map(([k,a])=>{const s=stats(a);return[k,{boletos:s.n,acierto:s.hit==null?null:Math.round(s.hit),beneficio:+s.profit.toFixed(2)}]})),selecciones_por_competicion:comp,limite_mensual:S.settings.monthlyLimit||null};
+  const prompt="Eres un analista de apuestas deportivas serio y responsable. Este es el resumen de la libreta de apuestas de Miguel (datos reales, en euros). Escribe en español de España entre 4 y 6 viñetas breves (empieza cada una con \"• \"), sin títulos ni introducción: qué le está funcionando, qué no, un consejo concreto de gestión del dinero (stake, número de selecciones) y, si los datos son pocos, avisa de que la muestra es pequeña y hay mucha varianza. No prometas ganancias ni inventes datos que no estén aquí.\n\nDatos:\n"+JSON.stringify(data);
+  S.aiBusy=true;S.aiErr=null;S.aiText="";render();
+  try{const r=await S.sample(prompt,{onText:({text})=>{S.aiText=text;const el=$("ai-out");if(el)el.textContent=text}});S.aiText=r.text}
+  catch(e){S.aiText=e&&e.text?e.text:"";S.aiErr=aiErrMsg(e)}
+  S.aiBusy=false;render()}
+/* ---------- IA: errores y sugerencias de boletos ---------- */
+function aiErrMsg(e){const c=e&&e.code;
+  return c==="cancelled"?null
+    :c==="not_configured"?"La IA aún no tiene su clave: falta el secreto ANTHROPIC_API_KEY en Supabase."
+    :c==="bad_api_key"?"La clave de Anthropic no es válida o no tiene saldo."
+    :c==="rate_limited"?"Demasiadas peticiones seguidas; prueba en un rato."
+    :c==="overloaded"?"Claude está saturado; prueba en un minuto."
+    :c==="refusal"?"Claude no ha podido responder a esta petición."
+    :c==="unauthorized"||c==="forbidden"?"Vuelve a iniciar sesión."
+    :c==="network"?"Sin conexión con el servidor de IA."
+    :c==="invalid_json"?"La respuesta de la IA no tenía el formato esperado. Inténtalo otra vez."
+    :"No se pudo completar. Inténtalo más tarde."}
+async function askSuggest(){if(!S.sample||S.sugBusy)return;
+  const bets=S.bets,st=stats(bets),legs={},types={},comp={};
+  for(const b of bets){const n=(b.selections||[]).length||1,k=n<=1?"simple":n<=3?"2-3":n<=6?"4-6":n<=10?"7-10":"11+";(legs[k]=legs[k]||[]).push(b);
+    for(const x of (b.selections||[])){if(x.result!=="won"&&x.result!=="lost")continue;const t=legType(x);types[t]=types[t]||{acertadas:0,falladas:0};x.result==="won"?types[t].acertadas++:types[t].falladas++;
+      const c=x.competition||"–";comp[c]=comp[c]||{acertadas:0,falladas:0};x.result==="won"?comp[c].acertadas++:comp[c].falladas++}}
+  const data={boletos:st.n,cerrados:st.closed,beneficio:+st.profit.toFixed(2),yield_pct:st.yld==null?null:+st.yld.toFixed(1),acierto_boletos_pct:st.hit==null?null:Math.round(st.hit),acierto_selecciones_pct:st.selHit==null?null:Math.round(st.selHit),cuota_media:st.avgOdds==null?null:+st.avgOdds.toFixed(2),
+    por_num_selecciones:Object.fromEntries(Object.entries(legs).map(([k,a])=>{const s=stats(a);return[k,{boletos:s.n,acierto:s.hit==null?null:Math.round(s.hit),beneficio:+s.profit.toFixed(2)}]})),por_tipo_de_pata:types,por_competicion:comp};
+  const fecha=new Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  const prompt=`Hoy es ${fecha} (${today()}). Miguel apuesta combinadas de fútbol y baloncesto en Winamax y Sportium (cuota mínima 1,10 por selección) con un stake habitual de ${S.settings.unit||10} €.
+Su historial real, resumido (JSON): ${JSON.stringify(data)}
+
+Tarea: usa la búsqueda web para encontrar partidos REALES que se jueguen en las próximas 48 horas (grandes ligas europeas, copas, Euroliga/NBA) y propón 2 o 3 boletos. Reglas:
+- Máximo 4 selecciones por boleto: más patas reducen mucho la probabilidad de cobrar.
+- Cada selección debe ser un partido que hayas verificado con la búsqueda. Pon una cuota estimada razonable de mercado (≥ 1,10) y tu probabilidad estimada en %.
+- Varía el riesgo (uno bajo, otro medio) y apóyate en su historial (qué tipos de pata y competiciones le funcionan mejor y peor).
+- Si no puedes verificar partidos, devuelve "combos" vacío y explica por qué en "aviso".
+- No prometas ganancias ni exageres: las cuotas son estimaciones que él debe confirmar en la casa.
+Formato exacto: {"resumen":"2 frases con tu enfoque","combos":[{"titulo":"","riesgo":"bajo|medio|alto","motivo":"1-2 frases","stake_sugerido":10,"selecciones":[{"evento":"Local – Visitante","competicion":"","deporte":"Fútbol|Baloncesto|Tenis|Otro","pronostico":"Gana Local","cuota":1.25,"prob_pct":78,"fecha":"AAAA-MM-DD"}]}],"aviso":"recordatorio breve de juego responsable"}`;
+  S.sugBusy=true;S.sugErr=null;render();
+  try{const d=await S.sample.json(prompt,{web:true});
+    if(!d||!Array.isArray(d.combos))throw{code:"invalid_json"};
+    S.sug={resumen:String(d.resumen||""),aviso:String(d.aviso||""),combos:d.combos.slice(0,3).filter(c=>Array.isArray(c.selecciones)&&c.selecciones.length)}}
+  catch(e){S.sugErr=aiErrMsg(e)}
+  S.sugBusy=false;render()}
+function useSuggestion(i){const c=S.sug&&S.sug.combos&&S.sug.combos[i];if(!c)return;
+  const sels=c.selecciones.map(x=>({event:String(x.evento||""),competition:String(x.competicion||""),sport:SPORTS.includes(x.deporte)?x.deporte:"Fútbol",pick:String(x.pronostico||""),market:"",odds:num(x.cuota)||null,result:"pending",close:null}));
+  openBetForm({date:today(),book:S.settings.defaultBook||S.bets[0]?.book||"Winamax",origin:"claude",type:sels.length>1?"Combinada":"Simple",status:"pending",stake:num(c.stake_sugerido)||S.settings.unit||"",odds:"",title:String(c.titulo||""),notes:String(c.motivo||""),oddsEstimated:true,tags:["ia"],selections:sels})}
+function sugCard(){if(!S.sample)return"";
+  const d=S.sug,combos=d?d.combos:[];
+  const risk={bajo:"won",medio:"pending",alto:"lost"};
+  const body=S.sugBusy?`<div class="sug-busy"><div class="skel" style="width:70%"></div><div class="skel" style="width:90%"></div><div class="skel" style="width:55%"></div><p class="hint">Busco partidos de las próximas 48 horas y reviso tu historial. Tarda entre 30 y 60 segundos.</p></div>`
+    :S.sugErr?`<p class="err">${esc(S.sugErr)}</p>`
+    :d?`${d.resumen?`<p class="sug-sum">${esc(d.resumen)}</p>`:""}${combos.length?`<div class="sug-grid">${combos.map((c,i)=>{
+        const odds=c.selecciones.every(x=>+x.cuota)?c.selecciones.reduce((a,x)=>a*+x.cuota,1):null,prob=c.selecciones.every(x=>+x.prob_pct)?c.selecciones.reduce((a,x)=>a*(+x.prob_pct/100),1)*100:null;
+        return `<article class="sug-c"><div class="sug-h"><b>${esc(c.titulo||"Boleto "+(i+1))}</b><span class="st ${risk[c.riesgo]||"pending"}">${esc(c.riesgo||"medio")}</span></div>
+          <ul>${c.selecciones.map(x=>`<li><span><i>${esc(x.competicion||"")}</i>${esc(x.evento||"")}<small>${esc(x.pronostico||"")}${x.fecha?" · "+esc(fdate(x.fecha)):""}</small></span><b>@${odd(+x.cuota)}</b></li>`).join("")}</ul>
+          <p class="sug-why">${esc(c.motivo||"")}</p>
+          <div class="sug-f"><span>${odds?"Cuota "+odd(odds):""}${prob!=null?" · prob. est. "+(prob<10?prob.toFixed(1).replace(".",","):Math.round(prob))+"%":""}</span><button class="btn sm primary" type="button" data-usesug="${i}">Usar en un boleto</button></div></article>`}).join("")}</div>`:'<p class="hint">No he podido verificar partidos para proponerte boletos ahora mismo.</p>'}${d.aviso?`<p class="hint sug-note">${esc(d.aviso)}</p>`:""}`
+    :'<p class="hint">Claude busca partidos reales de las próximas 48 horas y te propone 2 o 3 boletos según lo que mejor te ha funcionado. Las cuotas son estimadas: confírmalas en la casa. Cada petición gasta unos céntimos de tu cuenta de API.</p>';
+  return `<section class="card sug"><div class="card-h"><h2>${IC.spark}Sugerencias de BetIA</h2>${S.sugBusy?'<span class="hint">Buscando…</span>':`<button class="btn sm primary" type="button" data-suggest>${d?"Volver a generar":"Generar sugerencias"}</button>`}</div><div class="card-b">${body}</div></section>`}
+function renderInforme(){
+  if(S.db&&!S.ready.bets)return skeleton();
+  const bets=periodBets();
+  if(!bets.length)return `<div class="empty">${IC.informe}<b>Sin boletos en este periodo</b>Cambia el periodo arriba o registra apuestas para generar tu informe.</div>`;
+  const st=stats(bets),cf=cashflow(periodMoves()),fb=flowBuckets(bets);
+  const res=[{v:st.won,color:"var(--won)",label:"Ganados"},{v:st.lost,color:"var(--lost)",label:"Perdidos"},{v:st.voids+st.co,color:"var(--void)",label:"Nulos o cash out"},{v:st.pend,color:"var(--accent)",label:"En juego"}];
+  const bk={};for(const b of bets)bk[b.book||"–"]=(bk[b.book||"–"]||0)+(+b.stake||0);
+  const books=Object.entries(bk).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({v,label:k,color:bkc(k),fmt:eur(v)}));
+  const c=stats(bets.filter(b=>b.origin==="claude")),m=stats(bets.filter(b=>b.origin!=="claude"));
+  const vs=(av,nm,s)=>`<div class="vsrow">${av}<div style="min-width:0"><div class="nm">${nm}</div><div class="sub">${s.n} ${s.n===1?"boleto":"boletos"} · acierto ${pc0(s.hit)} · yield ${pct(s.yld)}</div></div><span class="pr ${cls(s.profit)}">${sgn(s.profit)}</span></div>`;
+  return `<section class="rep-hero"><span class="eyebrow">Informe · ${esc(PLAB[S.period])}</span>
+    <h2>Has jugado <span class="a">${st.n} ${st.n===1?"boleto":"boletos"}</span> y llevas <span class="${cls(st.profit)}">${sgn(st.profit)}</span>${st.pend?` con ${st.pend} ${st.pend===1?"boleto":"boletos"} todavía en juego`:""}.</h2>
+    <div class="rep-nums"><div><span>Apostado</span><b>${eur(st.staked+st.pendStake)}</b><small>${eur(st.pendStake)} en juego</small></div><div><span>Cobrado</span><b>${eur(st.returned)}</b><small>de boletos cerrados</small></div><div><span>Yield</span><b class="${cls(st.yld)}">${pct(st.yld)}</b><small>beneficio / apostado</small></div><div><span>Acierto</span><b>${pc0(st.hit)}</b><small>selecciones ${pc0(st.selHit)}</small></div><div><span>Neto en caja</span><b class="${cls(cf.wd-cf.dep)}">${sgn(cf.wd-cf.dep)}</b><small>retirado − depositado</small></div></div></section>
+  <div class="grid g-3">
+    <section class="card"><div class="card-h"><h2>Resultado de tus boletos</h2></div><div class="card-b">${donut(res,String(st.n),st.n===1?"boleto":"boletos")}</div></section>
+    <section class="card"><div class="card-h"><h2>Dónde apuestas</h2><span class="aside">stake por casa</span></div><div class="card-b">${donut(books,fmt0.format(st.staked+st.pendStake),"apostado")}</div></section>
+    <section class="card"><div class="card-h"><h2>Claude contra mí</h2></div><div class="card-b" style="gap:0">${vs('<span class="av c">C</span>',"Claude",c)}${vs('<span class="av m">M</span>',"Mías",m)}</div></section>
+  </div>
+  <section class="card"><div class="card-h"><h2>Apostado frente a cobrado</h2><span class="aside">por ${fb.mode==="day"?"día":fb.mode==="week"?"semana":"mes"}</span></div><div class="card-b">${flowChart(fb)}</div></section>
+  <div class="grid g-2">
+    <section class="card"><div class="card-h"><h2>Cuotas que juegas</h2><span class="aside">boletos por cuota total</span></div><div class="card-b">${oddsDist(bets)}</div></section>
+    <section class="card"><div class="card-h"><h2>Dónde aciertas</h2><span class="aside">selecciones por competición</span></div><div class="card-b">${compBars(bets)}</div></section>
+  </div>
+  <div class="grid g-2">
+    <section class="card"><div class="card-h"><h2>Momentos destacados</h2></div><div class="card-b">${highlights(bets)}</div></section>
+    <section class="card"><div class="card-h"><h2>Conclusiones</h2><span class="aside">calculadas con tus datos</span></div><div class="card-b">${conclusions(bets,st)}${aiBox()}</div></section>
+  </div>`}
+function renderAnalisis(){
+  if(S.db&&!S.ready.bets)return skeleton();
+  const bets=periodBets();
+  if(!bets.length)return `<div class="empty">${IC.analisis}<b>Sin datos en este periodo</b>Cambia el periodo arriba o registra apuestas para ver el análisis.</div>`;
+  const ob=[["Menos de 1,50",o=>o<1.5],["1,50 – 1,99",o=>o>=1.5&&o<2],["2,00 – 2,99",o=>o>=2&&o<3],["3,00 – 4,99",o=>o>=3&&o<5],["5,00 – 9,99",o=>o>=5&&o<10],["10,00 o más",o=>o>=10]];
+  const nb=[["Simple",n=>n<=1],["2 – 3",n=>n>=2&&n<=3],["4 – 6",n=>n>=4&&n<=6],["7 – 10",n=>n>=7&&n<=10],["11 o más",n=>n>=11]];
+  const wd=b=>b.date?DIA3[new Date(b.date+"T12:00:00").getDay()]:"–";
+  return `${killerCard(bets)}<div class="grid g-2">${clvCard(bets)}${tagCard(bets)}</div><div class="grid g-2">
+    <section class="card"><div class="card-h"><h2>Claude contra mí</h2><span class="aside">${bets.length} boletos en el periodo</span></div><div class="card-b">${duel(bets)}<p class="hint">Resaltado, quien va mejor en cada métrica. "Selecciones" cuenta cada pata de las combinadas por separado.</p></div></section>
+    <section class="card"><div class="card-h"><h2>Beneficio por mes</h2><span class="aside">por fecha de cierre</span></div><div class="card-b">${monthly(bets)}</div></section>
+  </div>
+  <div class="grid g-2">
+    <section class="card"><div class="card-h"><h2>Por rango de cuota</h2><span class="aside">acierto real frente al esperado</span></div><div class="card-b">${bucketTable(bets,ob,b=>+b.odds||0,"Cuota")}<p class="hint">"Esperado" es la probabilidad implícita media (1 / cuota). Si tu acierto real lo supera de forma sostenida, estás encontrando valor.</p></div></section>
+    <section class="card"><div class="card-h"><h2>Por número de selecciones</h2><span class="aside">cuántas patas te compensan</span></div><div class="card-b">${bucketTable(bets,nb,b=>(b.selections||[]).length||1,"Selecciones")}<p class="hint">Cada pata añadida multiplica la cuota, pero también el margen de la casa.</p></div></section>
+  </div>
+  <div class="grid g-2">
+    <section class="card"><div class="card-h"><h2>Por casa de apuestas</h2></div><div class="card-b">${groupTable(bets,b=>b.book,"Casa","book")}</div></section>
+    <section class="card"><div class="card-h"><h2>Por día de la semana</h2><span class="aside">día del boleto</span></div><div class="card-b">${groupTable(bets,wd,"Día",null,["Lun","Mar","Mié","Jue","Vie","Sáb","Dom","–"])}</div></section>
+  </div>
+  <div class="grid g-2">
+    <section class="card"><div class="card-h"><h2>Acierto por competición</h2><span class="aside">selecciones cerradas</span></div><div class="card-b">${selTable(bets,x=>x.competition,"Competición")}</div></section>
+    <section class="card"><div class="card-h"><h2>Acierto por deporte</h2><span class="aside">selecciones cerradas</span></div><div class="card-b">${selTable(bets,x=>x.sport,"Deporte")}</div></section>
+  </div>`}
+
+/* ---------- Caja ---------- */
+function renderCaja(){
+  const mv=periodMoves().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created||0)-(a.created||0)),cf=cashflow(mv),by={};
+  for(const m of S.moves){const k=m.book||"–";by[k]=by[k]||{dep:0,wd:0,bon:0};const a=+m.amount||0;if(m.kind==="deposit")by[k].dep+=a;else if(m.kind==="withdrawal")by[k].wd+=a;else by[k].bon+=a}
+  for(const b of S.bets){const k=b.book||"–";by[k]=by[k]||{dep:0,wd:0,bon:0}}
+  const rows=Object.entries(by).map(([k,v])=>{const s=stats(S.bets.filter(b=>b.book===k));return{k,v,s,bal:v.dep-v.wd+v.bon+s.profit-s.pendStake}}).sort((a,b)=>b.bal-a.bal);
+  const net=cf.wd-cf.dep,kind=m=>m.kind==="deposit"?"Depósito":m.kind==="withdrawal"?"Retirada":"Bono";
+  return `<section class="kpis k4">
+    <div class="card kpi hero"><span class="lbl">Neto en tu bolsillo</span><span class="val ${cls(net)}">${sgn(net)}</span><span class="foot">retirado menos depositado</span></div>
+    <div class="card kpi"><span class="lbl">Depositado</span><span class="val">${eur(cf.dep)}</span><span class="foot">${mv.filter(m=>m.kind==="deposit").length} depósitos</span></div>
+    <div class="card kpi"><span class="lbl">Retirado</span><span class="val">${eur(cf.wd)}</span><span class="foot">${mv.filter(m=>m.kind==="withdrawal").length} retiradas</span></div>
+    <div class="card kpi"><span class="lbl">Bonos</span><span class="val">${eur(cf.bon)}</span><span class="foot">promociones recibidas</span></div>
+  </section>
+  <div class="grid g-main">
+    <section class="card"><div class="card-h"><h2>Movimientos</h2><button class="btn sm" type="button" data-newmove>${IC.plus}Añadir</button></div>
+      <div class="card-b">${mv.length?`<div class="tablebox"><table><thead><tr><th>Fecha</th><th>Casa</th><th>Tipo</th><th class="r">Importe</th><th>Nota</th><th></th></tr></thead><tbody>${mv.map(m=>`<tr data-mid="${esc(m.id)}"><td>${esc(fdate(m.date))}</td><td>${bk(m.book)}${esc(m.book)}</td><td>${kind(m)}</td>
+        <td class="r"><b class="${m.kind==="withdrawal"?"pos":""}">${m.kind==="withdrawal"?"−":"+"}${eur(+m.amount)}</b></td><td class="muted" style="white-space:normal;min-width:110px">${esc(m.note||"")}</td>
+        <td class="r">${S.confirm==="m:"+m.id?`<button class="btn sm danger" data-mact="del-yes" type="button">Borrar</button> <button class="btn sm" data-mact="del-no" type="button">No</button>`:`<button class="btn sm icon" data-mact="edit" type="button" aria-label="Editar">${IC.edit}</button> <button class="btn sm icon danger" data-mact="del" type="button" aria-label="Borrar">${IC.trash}</button>`}</td></tr>`).join("")}</tbody></table></div>`
+        :`<div class="empty">${IC.caja}<b>Sin movimientos</b>Apunta cada ingreso y retirada para saber cuánto dinero real has metido y sacado.<button class="btn primary" type="button" data-newmove>Añadir movimiento</button></div>`}</div></section>
+    <section class="card"><div class="card-h"><h2>Saldo por casa</h2><span class="aside">estimado</span></div>
+      <div class="card-b">${rows.length?`<div class="tablebox"><table><thead><tr><th>Casa</th><th class="r">Neto ingresado</th><th class="r">Apuestas</th><th class="r">Saldo</th></tr></thead><tbody>${rows.map(({k,v,s,bal})=>`<tr><td>${bk(k)}${esc(k)}</td><td class="r">${eur(v.dep-v.wd+v.bon)}</td><td class="r ${cls(s.profit)}">${sgn(s.profit)}</td><td class="r"><b>${eur(bal)}</b></td></tr>`).join("")}</tbody></table></div>
+        <p class="hint">Saldo = depositado − retirado + bonos ± apuestas cerradas − dinero en juego. Si no coincide con el de la casa, falta algo por apuntar.</p>`:'<p class="hint">Aparecerá cuando registres apuestas o movimientos.</p>'}</div></section>
+  </div>`}
+
+/* ---------- Ficha lateral ---------- */
+function drawerHTML(b){const sels=b.selections||[],r=ret(b),p=profitOf(b),conf=S.confirm===b.id;
+  return `<div class="scrim" data-close></div><aside class="drawer${S.anim?" anim":""}" role="dialog" aria-modal="true" aria-label="Detalle del boleto">
+    <div class="dr-h"><span class="t">Boleto</span><div style="display:flex;gap:6px"><button class="btn sm icon" type="button" data-d="dup" title="Duplicar" aria-label="Duplicar">${IC.copy}</button><button class="btn sm icon" type="button" data-d="edit" title="Editar" aria-label="Editar">${IC.edit}</button><button class="btn sm icon" type="button" data-close aria-label="Cerrar">${IC.x}</button></div></div>
+    <div class="dr-b">
+      <div class="ticket">
+        <div class="tk-top"><div class="tk-meta"><span class="st ${esc(b.status)}">${STATUS[b.status]}</span><span class="chip">${bk(b.book)}${esc(b.book)}</span><span class="chip">${esc(b.type||"Simple")}</span><span class="chip${b.origin==="claude"?" c":""}">${b.origin==="claude"?"Claude":"Mía"}</span>${b.freebet?'<span class="chip">Apuesta gratis</span>':""}${(b.tags||[]).map(t=>`<span class="chip">#${esc(t)}</span>`).join("")}<span>${esc(dayLabel(b.date))}</span></div>
+          <div class="tk-title">${esc(b.title||(sels[0]?sels[0].event:"Apuesta"))}</div>${b.oddsEstimated?'<span class="tagw" style="width:max-content">Cuota estimada · confírmala con el boleto en Editar</span>':""}</div>
+        <div class="tk-nums"><div class="kv"><div class="k">${b.freebet?"Apuesta gratis":"Stake"}</div><div class="v">${eur(+b.stake)}</div></div><div class="kv"><div class="k">Cuota${b.boost?" + booster":""}</div><div class="v">${odd(b.odds)}${b.boost?`<span style="font-size:.95rem;color:var(--won)"> +${esc(dec(b.boost))}%</span>`:""}</div></div>
+          <div class="kv"><div class="k">${r==null?"Posible cobro":"Resultado"}</div><div class="v ${cls(p)}">${r==null?eur(winAmt(b)):sgn(p)}</div></div></div>
+        ${sels.length?`<ul class="sels">${sels.map((x,i)=>`<li class="${esc(x.result||"")}"><div><div class="e">${esc(x.event)}</div><div class="m">${x.sport?`<span class="sp">${esc(x.sport)}</span>`:""}${esc([x.competition,x.pick].filter(Boolean).join(" · "))}</div></div><span class="o">${odd(x.odds)}</span>
+          <div class="rset" role="group" aria-label="Resultado de la selección"><button class="w" type="button" data-sel="${i}" data-v="won" aria-pressed="${x.result==="won"}">✓ Acertada</button><button class="l" type="button" data-sel="${i}" data-v="lost" aria-pressed="${x.result==="lost"}">✕ Fallada</button><button class="v" type="button" data-sel="${i}" data-v="void" aria-pressed="${x.result==="void"}">Nula</button><label class="cl">Cierre <input data-close-i="${i}" inputmode="decimal" value="${esc(dec(x.close))}" placeholder="–" aria-label="Cuota de cierre"></label>${+x.close&&+x.odds?`<span class="clv ${+x.odds>+x.close?"up":+x.odds<+x.close?"down":""}" title="Valor frente al cierre">CLV ${pct((x.odds/x.close-1)*100)}</span>`:""}</div></li>`).join("")}</ul>`:""}
+      </div>
+      ${sels.length>1?'<p class="hint">Si marcas una selección como fallada, el boleto pasa a perdido. Si aciertas todas, a ganado; las nulas se descuentan de la cuota.</p>':""}
+      ${b.notes?`<div class="notes">${esc(b.notes)}</div>`:""}
+    </div>
+    <div class="dr-f">${conf?`<div class="inline"><span>¿Borrar este boleto? No se puede deshacer.</span><button class="btn sm danger" type="button" data-d="del-yes">Borrar</button><button class="btn sm" type="button" data-d="del-no">Cancelar</button></div>`
+      :S.cashout?`<div class="inline"><label for="co-amt">Cobrado en el cash out</label><div class="money"><input id="co-amt" inputmode="decimal" placeholder="0,00"></div><button class="btn sm primary" type="button" data-d="co-ok">Guardar</button><button class="btn sm" type="button" data-d="co-no">Cancelar</button></div>`
+      :b.status==="pending"?`<div class="row"><button class="btn won grow" type="button" data-d="st" data-v="won">Ganada</button><button class="btn lost grow" type="button" data-d="st" data-v="lost">Perdida</button></div><div class="row"><button class="btn soft grow" type="button" data-d="st" data-v="void">Nula</button><button class="btn soft grow" type="button" data-d="co">Cash out</button><button class="btn icon danger" type="button" data-d="del" aria-label="Borrar">${IC.trash}</button></div>`
+      :`<div class="row"><button class="btn grow" type="button" data-d="st" data-v="pending">${IC.undo}Reabrir boleto</button><button class="btn icon danger" type="button" data-d="del" aria-label="Borrar">${IC.trash}</button></div>`}</div></aside>`}
+function renderDrawer(){const root=$("drawer-root"),b=S.drawer&&S.bets.find(x=>x.id===S.drawer);
+  if(!b){root.innerHTML="";S.drawer=null;document.body.style.overflow=$("overlay").hidden?"":"hidden";return}
+  const sc=root.querySelector(".dr-b")?.scrollTop||0;root.innerHTML=drawerHTML(b);S.anim=false;const nb=root.querySelector(".dr-b");if(nb)nb.scrollTop=sc;document.body.style.overflow="hidden"}
+function openDrawer(id){S.drawer=id;S.confirm=null;S.cashout=false;S.anim=true;renderDrawer();setTimeout(()=>$("drawer-root").querySelector(".dr-h .btn:last-child")?.focus(),30)}
+function closeDrawer(){S.drawer=null;S.confirm=null;S.cashout=false;renderDrawer()}
+
+/* ---------- Render ---------- */
+function renderNav(){
+  const pend=S.bets.filter(b=>b.status==="pending").length,cur=v=>S.view===v?' aria-current="page"':"";
+  $("nav").innerHTML='<span class="nav-t">General</span>'+[["panel","Panel"],["informe","Informe"],["apuestas","Apuestas"],["analisis","Análisis"],["caja","Caja"]].map(([v,l])=>`<button type="button" data-view="${v}"${cur(v)}>${IC[v]}${l}${v==="apuestas"?(pend?`<span class="badge live" title="En juego">${pend}</span>`:`<span class="badge">${S.bets.length}</span>`):""}</button>`).join("");
+  $("tabbar").innerHTML=`<button type="button" data-view="panel"${cur("panel")}>${IC.panel}Panel</button><button type="button" data-view="apuestas"${cur("apuestas")}>${IC.apuestas}Apuestas</button><button type="button" class="plus" data-new aria-label="Nueva apuesta">${IC.plus}</button><button type="button" data-view="informe"${cur("informe")}>${IC.informe}Informe</button><button type="button" data-view="analisis"${cur("analisis")}>${IC.analisis}Análisis</button><button type="button" data-view="caja"${cur("caja")}>${IC.caja}Caja</button>`}
+function render(){
+  renderNav();renderSideLimit();renderSideAuto();
+  $("v-title").textContent=VIEWS[S.view][0];
+  const pend=S.bets.filter(b=>b.status==="pending");
+  $("v-sub").textContent=S.view==="panel"&&pend.length?pend.length+(pend.length===1?" boleto en juego":" boletos en juego")+" · "+eur(pend.reduce((a,b)=>a+(+b.stake||0),0))+" arriesgados":S.period!=="all"&&S.view!=="caja"?VIEWS[S.view][1]+" · "+({"7":"últimos 7 días","30":"últimos 30 días",month:"este mes",year:"este año"})[S.period]:VIEWS[S.view][1];
+  $("period").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===S.period)));
+  for(const k in CH)delete CH[k];
+  $("view").innerHTML=(S.noDb?`<div class="banner">${esc(S.noDb)}</div>`:"")+({panel:renderPanel,informe:renderInforme,apuestas:renderApuestas,analisis:renderAnalisis,caja:renderCaja})[S.view]();
+  bindCharts();
+  if(S.drawer)renderDrawer();
+}
+
+/* ---------- Escritura ---------- */
+function toast(msg,isErr,undo){const t=$("toast");t.innerHTML=esc(msg)+(undo?' <button class="tbtn" type="button">Deshacer</button>':"");t.className="toast"+(isErr?" err":"");t.hidden=false;clearTimeout(toast.t);
+  if(undo)t.querySelector(".tbtn").onclick=async()=>{t.hidden=true;clearTimeout(toast.t);await undo();toast("Deshecho")};
+  toast.t=setTimeout(()=>t.hidden=true,isErr?6000:undo?6000:2400)}
+function errMsg(e){return e&&e.code==="quota_exceeded"?"No queda espacio para más registros.":e&&e.code==="invalid_argument"?"Solo el propietario de la libreta puede guardar cambios.":"No se pudo guardar. Inténtalo de nuevo."}
+async function put(col,key,obj){if(!S.db){const a=S[key],i=a.findIndex(x=>x.id===obj.id);if(i>=0)a[i]=obj;else a.push(obj);render();return true}
+  const {id,...body}=obj;try{await S.db.collection(col).doc(id).set(body);return true}catch(e){toast(errMsg(e),true);return false}}
+async function del(col,key,id){if(!S.db){S[key]=S[key].filter(x=>x.id!==id);render();return}try{await S.db.collection(col).doc(id).delete()}catch(e){toast(errMsg(e),true)}}
+async function saveSettings(s){S.settings=s;if(!S.db){render();return}try{await S.db.doc("settings/main").set(s)}catch(e){toast(errMsg(e),true)}}
+const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function derive(b){const sels=b.selections||[];if(!sels.length)return b;
+  if(sels.some(x=>x.result==="lost"))return{...b,status:"lost",payout:null,settled:today()};
+  if(sels.every(x=>x.result==="won"||x.result==="void")){if(sels.every(x=>x.result==="void"))return{...b,status:"void",payout:null,settled:today()};
+    let payout=null;if(sels.some(x=>x.result==="void")&&sels.every(x=>+x.odds))payout=+winAmt({...b,odds:sels.filter(x=>x.result==="won").reduce((a,x)=>a*x.odds,1)}).toFixed(2);
+    return{...b,status:"won",payout,settled:today()}}
+  return b.status==="pending"?b:{...b,status:"pending",payout:null,settled:null}}
+
+/* ---------- Exportar ---------- */
+async function exportCSV(){
+  if(!S.bets.length&&!S.moves.length){toast("Aún no hay datos que exportar.");return}
+  if(!S.dl){toast("La exportación no está disponible en esta vista.",true);return}
+  const n=v=>v==null||v===""||isNaN(v)?"":String(Math.round(v*100)/100).replace(".",",");
+  const q=v=>{const s=String(v??"");return /[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+  const lines=[["registro","id","fecha","fecha_cierre","casa","origen","tipo","estado","stake","cuota_total","cobrado","beneficio","n_selecciones","nombre","partido","competicion","deporte","pronostico","cuota_seleccion","resultado_seleccion","importe_movimiento","nota","booster_pct","apuesta_gratis"].join(";")];
+  for(const b of S.bets.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""))){const sels=(b.selections&&b.selections.length)?b.selections:[{}];
+    for(const x of sels)lines.push(["apuesta",b.id,b.date,b.settled||"",b.book,b.origin==="claude"?"Claude":"Mía",b.type,STATUS[b.status],n(+b.stake),n(+b.odds),n(ret(b)),n(profitOf(b)),(b.selections||[]).length,b.title||"",x.event||"",x.competition||"",x.sport||"",x.pick||"",n(x.odds),x.result?(STATUS[x.result]||x.result):"","",b.notes||"",n(+b.boost||null),b.freebet?"Sí":"No"].map(q).join(";"))}
+  for(const m of S.moves)lines.push(["movimiento",m.id,m.date,"",m.book,"",m.kind==="deposit"?"Depósito":m.kind==="withdrawal"?"Retirada":"Bono","","","","","","","","","","","","","",n(m.kind==="withdrawal"?-m.amount:+m.amount),m.note||"","",""].map(q).join(";"));
+  try{await S.dl.save({filename:"libreta-apuestas-"+today()+".csv",data:"﻿"+lines.join("\r\n")});toast("CSV exportado")}catch(e){if(!e||e.code!=="declined")toast("No se pudo exportar el archivo.",true)}}
+
+/* ---------- Eventos ---------- */
+document.addEventListener("click",async e=>{
+  const t=e.target;
+  const v=t.closest("[data-view]");if(v){S.view=v.dataset.view;S.confirm=null;render();window.scrollTo({top:0});try{localStorage.setItem("libreta-view",S.view)}catch(_){}return}
+  if(t.closest("[data-new]"))return openBetForm();
+  if(t.closest("[data-newmove]"))return openMoveForm();
+  if(t.closest("[data-settings]"))return openSettings();
+  if(t.closest("[data-ai]"))return askAI();
+  if(t.closest("[data-suggest]"))return askSuggest();
+  const us=t.closest("[data-usesug]");if(us)return useSuggestion(+us.dataset.usesug);
+  if(t.closest("[data-reset]")){S.status=S.book=S.origin=S.tag="all";S.sort="recent";$("q").value="";render();return}
+  const o=t.closest("[data-open]");if(o)return openDrawer(o.dataset.open);
+  if(t.closest("[data-close]"))return closeDrawer();
+  const pb=t.closest("#period button");if(pb){S.period=pb.dataset.v;render();try{localStorage.setItem("libreta-period",S.period)}catch(_){}return}
+  const cm=t.closest("#chart-mode button");if(cm){if(!cm.disabled){S.chartMode=cm.dataset.v;render()}return}
+  const kd=t.closest("#kdim button");if(kd){S.kDim=kd.dataset.v;render();return}
+  const sb=t.closest("#stabs button");if(sb){S.status=sb.dataset.v;render();return}
+  const mb=t.closest("[data-mact]");if(mb){const id=mb.closest("tr").dataset.mid,a=mb.dataset.mact,m=S.moves.find(x=>x.id===id);
+    if(a==="edit")openMoveForm(m);else if(a==="del"){S.confirm="m:"+id;render()}else if(a==="del-no"){S.confirm=null;render()}else{S.confirm=null;await del("moves","moves",id);toast("Movimiento borrado",false,()=>put("moves","moves",m))}return}
+  const b=S.drawer&&S.bets.find(x=>x.id===S.drawer);if(!b)return;
+  const sl=t.closest("[data-sel]");if(sl){const i=+sl.dataset.sel,val=sl.dataset.v;const sels=(b.selections||[]).map((x,j)=>j===i?{...x,result:x.result===val?"pending":val}:x);
+    const nb=derive({...b,selections:sels});if(await put("bets","bets",nb)&&nb.status!==b.status)toast("Boleto "+STATUS[nb.status].toLowerCase(),false,()=>put("bets","bets",b));return}
+  const d=t.closest("[data-d]");if(!d)return;const a=d.dataset.d;
+  if(a==="edit"){openBetForm(b);return}
+  if(a==="dup"){const {id,created,settled,payout,...rest}=b;openBetForm({...rest,date:today(),status:"pending",payout:null,selections:(b.selections||[]).map(x=>({...x,result:"pending"}))},true);return}
+  if(a==="del"){S.confirm=b.id;renderDrawer();return}
+  if(a==="del-no"){S.confirm=null;renderDrawer();return}
+  if(a==="del-yes"){const id=b.id;closeDrawer();await del("bets","bets",id);toast("Boleto borrado",false,()=>put("bets","bets",b));return}
+  if(a==="co"){S.cashout=true;renderDrawer();setTimeout(()=>$("co-amt")?.focus(),20);return}
+  if(a==="co-no"){S.cashout=false;renderDrawer();return}
+  if(a==="co-ok"){const amt=num($("co-amt").value);if(amt==null||amt<0){$("co-amt").focus();return}S.cashout=false;if(await put("bets","bets",{...b,status:"cashout",payout:amt,settled:today()}))toast("Cash out guardado");return}
+  if(a==="st"){const val=d.dataset.v;if(await put("bets","bets",{...b,status:val,payout:null,settled:val==="pending"?null:today()}))toast(val==="won"?"Marcado como ganado":val==="lost"?"Marcado como perdido":val==="void"?"Marcado como nulo":"Boleto reabierto",false,()=>put("bets","bets",b))}
+});
+document.addEventListener("change",async e=>{const ci=e.target.closest&&e.target.closest("[data-close-i]");
+  if(ci){const b=S.drawer&&S.bets.find(x=>x.id===S.drawer);if(!b)return;const i=+ci.dataset.closeI,v=num(ci.value);const sels=(b.selections||[]).map((x,j)=>j===i?{...x,close:v&&v>=1?v:null}:x);if(await put("bets","bets",{...b,selections:sels}))toast("Cuota de cierre guardada");return}
+  const id=e.target.id;if(id==="f-tag"){S.tag=e.target.value;render();return}if(id==="f-book"){S.book=e.target.value;render()}else if(id==="f-origin"){S.origin=e.target.value;render()}else if(id==="f-sort"){S.sort=e.target.value;render()}});
+let qT;$("q").addEventListener("input",()=>{clearTimeout(qT);qT=setTimeout(render,160)});
+$("top-new").addEventListener("click",()=>openBetForm());$("side-new").addEventListener("click",()=>openBetForm());
+$("side-move").addEventListener("click",()=>openMoveForm());$("side-export").addEventListener("click",exportCSV);$("side-settings").addEventListener("click",openSettings);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("overlay").hidden)closeOverlay();else if(S.drawer)closeDrawer();return}
+  const tag=(document.activeElement&&document.activeElement.tagName)||"";if(/INPUT|TEXTAREA|SELECT/.test(tag)||e.metaKey||e.ctrlKey||e.altKey||!$("overlay").hidden)return;
+  if(e.key==="n"||e.key==="N"){e.preventDefault();openBetForm()}else if(e.key==="/"){e.preventDefault();$("q").focus()}else if(/^[1-5]$/.test(e.key)&&!S.drawer){S.view=["panel","informe","apuestas","analisis","caja"][+e.key-1];render()}});
+
+/* ---------- Formularios ---------- */
+function closeOverlay(){const o=$("overlay");o.hidden=true;o.innerHTML="";document.body.style.overflow=S.drawer?"hidden":""}
+function openOverlay(html){const o=$("overlay");o.innerHTML=html;o.hidden=false;document.body.style.overflow="hidden"}
+$("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeOverlay()});
+const opts=(arr,cur)=>arr.map(v=>`<option value="${esc(v)}"${v===cur?" selected":""}>${esc(v)}</option>`).join("");
+const segf=(id,items,cur,c)=>`<div class="segf ${c||""}" id="${id}" role="group">${items.map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${v===cur}">${l}</button>`).join("")}</div>`;
+const segVal=id=>$(id).querySelector('[aria-pressed="true"]')?.dataset.v;
+function bindSeg(id,cb){$(id).addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;$(id).querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));cb&&cb(b.dataset.v)})}
+let rowN=0;
+function selRow(x={}){const i=rowN++;return `<div class="selrow" data-i="${i}" data-res="${esc(x.result||"pending")}" data-close="${esc(x.close||"")}"><span class="n"></span>
+  <input class="ev-in" id="s-ev-${i}" placeholder="Partido · Roma – Cagliari" value="${esc(x.event||"")}" aria-label="Partido" list="dl-ev">
+  <input id="s-comp-${i}" placeholder="Competición" value="${esc(x.competition||"")}" aria-label="Competición" list="dl-comp">
+  <input id="s-pick-${i}" placeholder="Pronóstico · Gana Roma" value="${esc(x.pick||"")}" aria-label="Pronóstico" list="dl-pick">
+  <input id="s-odds-${i}" inputmode="decimal" placeholder="Cuota" value="${esc(dec(x.odds))}" aria-label="Cuota">
+  <select id="s-sport-${i}" aria-label="Deporte">${opts(SPORTS,x.sport||"Fútbol")}</select>
+  <button class="rm" type="button" data-rm aria-label="Quitar selección">✕</button></div>`}
+/* Alta rápida: texto libre -> selecciones */
+const KW="gana\\w*|empate|1x|x2|12|[12x]|m[aá]s|menos|over|under|ambos|btts|h[aá]ndicap";
+function histIndex(){const m=new Map();for(const b of S.bets)for(const x of b.selections||[]){if(!x.event)continue;const v={competition:x.competition||"",sport:x.sport||"Fútbol"};m.set(x.event.toLowerCase(),v);for(const t of x.event.split(/\s[–—-]\s/))if(t.trim())m.set("t:"+t.trim().toLowerCase(),v)}return m}
+const guessSport=t=>/euroliga|nba|acb|eurocup|baloncesto|basket|endesa/i.test(t)?"Baloncesto":/\batp\b|\bwta\b|tenis|roland|wimbledon/i.test(t)?"Tenis":"Fútbol";
+function lookupHist(idx,ev){const [a,b]=ev.split(/\s[–—-]\s/);return idx.get(ev.toLowerCase())||(a&&idx.get("t:"+a.trim().toLowerCase()))||(b&&idx.get("t:"+b.trim().toLowerCase()))||null}
+function parsePasted(text){
+  const idx=histIndex(),out=[];
+  for(const raw of String(text).split(/\n+/)){let line=raw.trim();if(!line)continue;
+    let odds=null,m=line.match(/(?:^|[\s|;@])(\d{1,3}[.,]\d{1,3})\s*$/)||line.match(/@\s*(\d{1,3})\s*$/);
+    if(m){const v=parseFloat(m[1].replace(",","."));if(v>=1.01){odds=v;line=line.slice(0,m.index).replace(/[\s|;@]+$/,"")}}
+    let ev="",pick="",comp="";const parts=line.split(/\s*[|;\t]\s*/);
+    const kwRe=new RegExp("\\s(?=(?:"+KW+")(?:\\s|$))","i");
+    if(parts.length>=2){ev=parts[0];pick=parts[1];comp=parts[2]||""}
+    else{const k=line.search(kwRe);if(k>0){ev=line.slice(0,k);pick=line.slice(k).trim()}else ev=line}
+    ev=ev.replace(/\s+(?:vs\.?|v)\s+|\s+[–—-]\s+/i," – ").replace(/\s+/g," ").trim();
+    const [A,B]=ev.split(" – "),pk=pick.toLowerCase().replace(/\s/g,"");
+    if(B){if(pk==="1")pick="Gana "+A;else if(pk==="2")pick="Gana "+B;else if(pk==="x")pick="Empate";else if(pk==="1x")pick=A+" o empate (1X)";else if(pk==="x2")pick=B+" o empate (X2)";else if(pk==="12")pick="Gana cualquiera (12)"}
+    if(pick)pick=pick[0].toUpperCase()+pick.slice(1);
+    const h=lookupHist(idx,ev);
+    out.push({event:ev,competition:comp||(h&&h.competition)||"",pick,odds,sport:(h&&h.sport)||guessSport(comp+" "+ev+" "+pick)});
+  }
+  return out}
+function openBetForm(b,isDup){
+  const isNew=!b;const editing=!!(b&&b.id);const def=S.settings.defaultBook||S.bets[0]?.book||"Winamax";
+  b=b||{date:today(),book:def,origin:"mine",type:"Combinada",status:"pending",stake:S.settings.unit||"",odds:"",selections:[{},{}]};
+  rowN=0;const comps=[...new Set(S.bets.flatMap(x=>(x.selections||[]).map(s=>s.competition)).filter(Boolean))];
+  const evs=[...new Set(S.bets.flatMap(x=>(x.selections||[]).map(s=>s.event)).filter(Boolean))].slice(-120),pks=[...new Set(S.bets.flatMap(x=>(x.selections||[]).map(s=>s.pick)).filter(Boolean))].slice(-120);
+  const units=[...new Set([num(S.settings.unit),5,10,20,50].filter(Boolean))].sort((x,y)=>x-y);
+  openOverlay(`<form class="sheet" id="bet-form" novalidate><datalist id="dl-comp">${comps.map(c=>`<option value="${esc(c)}">`).join("")}</datalist><datalist id="dl-ev">${evs.map(c=>`<option value="${esc(c)}">`).join("")}</datalist><datalist id="dl-pick">${pks.map(c=>`<option value="${esc(c)}">`).join("")}</datalist>
+    <div class="sheet-h"><h2>${editing?"Editar boleto":isDup?"Duplicar boleto":"Nuevo boleto"}</h2><div style="display:flex;gap:8px;align-items:center">${S.canImg&&S.sample?`<label class="btn sm" for="scan-in" title="Sube una captura del boleto y se rellena solo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 16-5-5-8 8"/></svg>Leer captura</label><input type="file" id="scan-in" accept="${esc((S.imgTypes||[]).join(","))}" hidden>`:""}<button class="btn icon" type="button" id="x" aria-label="Cerrar">${IC.x}</button></div></div>
+    <div class="sheet-b">
+      ${isNew?`<div class="sec quick"><span class="sec-t">Alta rápida</span><textarea id="q-paste" rows="3" spellcheck="false" aria-label="Selecciones en texto" placeholder="Pega o escribe una selección por línea:
+Roma - Cagliari 1 @1,25
+Baskonia - Real Madrid 2 @1,22
+Alanyaspor - Bingölspor | Gana Alanyaspor | 1,12"></textarea><div class="q-row"><span class="hint">Partido, pronóstico (1, X, 2, 1X, X2…) y cuota. Se rellena el resto.</span><button class="btn sm" type="button" id="q-add">Añadir al boleto</button></div></div>`:""}
+      <div class="sec"><span class="sec-t">Datos del boleto</span>
+        <div class="fields">
+          <div class="field"><label for="b-date">Fecha</label><input type="date" id="b-date" value="${esc(b.date)}"></div>
+          <div class="field"><label for="b-book">Casa</label><select id="b-book">${opts(BOOKS.includes(b.book)?BOOKS:[b.book,...BOOKS],b.book)}</select></div>
+          <div class="field"><label for="b-type">Tipo</label><select id="b-type">${opts(["Simple","Combinada","Sistema","Crear apuesta"],b.type)}</select></div>
+          <div class="field"><label>Origen</label>${segf("b-origin",[["mine","Mía"],["claude","Claude"]],b.origin==="claude"?"claude":"mine")}</div>
+        </div>
+        <div class="field"><label for="b-title">Nombre <span class="muted" style="font-weight:400">(opcional)</span></label><input id="b-title" value="${esc(b.title||"")}" placeholder="Combinada martes · copas y Euroliga"></div>
+        <div class="field"><label for="b-tags">Etiquetas <span class="muted" style="font-weight:400">(separadas por comas)</span></label><input id="b-tags" value="${esc((b.tags||[]).join(", "))}" placeholder="copas, valor, corazonada"></div></div>
+      <div class="sec"><span class="sec-t">Selecciones</span><div class="selrows" id="selrows">${(b.selections||[]).map(selRow).join("")}</div><button class="add" type="button" id="add-sel">+ Añadir selección</button></div>
+      <div class="sec"><span class="sec-t">Importe y estado</span>
+        <div class="fields">
+          <div class="field"><label for="b-stake">Stake</label><div class="money"><input id="b-stake" inputmode="decimal" value="${esc(dec(b.stake))}" placeholder="10"></div><div class="chips" id="stake-chips">${units.map(u=>`<button type="button" data-u="${u}">${dec(u)} €</button>`).join("")}</div></div>
+          <div class="field"><label for="b-odds">Cuota total</label><input id="b-odds" inputmode="decimal" value="${esc(dec(b.odds))}" placeholder="auto"></div>
+          <div class="field"><label for="b-boost">Booster sobre la ganancia</label><div class="pctf"><input id="b-boost" inputmode="decimal" value="${esc(dec(b.boost))}" placeholder="0"></div></div>
+          <div class="field" id="payout-f"${b.status==="cashout"?"":" hidden"}><label for="b-payout">Cobrado</label><div class="money"><input id="b-payout" inputmode="decimal" value="${esc(dec(b.payout))}"></div></div>
+        </div>
+        ${segf("b-status",[["pending","Pendiente"],["won","Ganada"],["lost","Perdida"],["void","Nula"],["cashout","Cash out"]],b.status,"status")}
+        <label class="check"><input type="checkbox" id="b-free"${b.freebet?" checked":""}> Apuesta gratis: el stake no sale de tu saldo y solo cobras la ganancia</label>
+        <label class="check"><input type="checkbox" id="b-est"${b.oddsEstimated?" checked":""}> La cuota es estimada; la confirmaré con el boleto</label></div>
+      <div class="sec"><span class="sec-t">Notas</span><div class="field"><textarea id="b-notes" aria-label="Notas" placeholder="Por qué la hiciste, bajas, sensaciones…">${esc(b.notes||"")}</textarea></div></div>
+    </div>
+    <div class="summary"><div class="sum"><div class="kv"><div class="k">Cuota</div><div class="v" id="sum-odds">–</div></div><div class="kv"><div class="k">Posible cobro</div><div class="v" id="sum-pot">–</div></div><div class="kv"><div class="k">Prob. implícita</div><div class="v" id="sum-prob">–</div></div></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="err" id="form-err" role="alert"></span><button class="btn" type="button" id="cancel">Cancelar</button><button class="btn primary" type="submit">${editing?"Guardar cambios":"Guardar boleto"}</button></div></div></form>`);
+  const renum=()=>$("selrows").querySelectorAll(".selrow .n").forEach((n,i)=>n.textContent=i+1);renum();
+  const readSels=()=>[...$("selrows").querySelectorAll(".selrow")].map(r=>{const i=r.dataset.i;return{event:$("s-ev-"+i).value.trim(),competition:$("s-comp-"+i).value.trim(),pick:$("s-pick-"+i).value.trim(),market:"",odds:num($("s-odds-"+i).value),sport:$("s-sport-"+i).value,result:r.dataset.res||"pending",close:num(r.dataset.close)}}).filter(x=>x.event||x.pick);
+  const calc=()=>{const s=readSels();let o=num($("b-odds").value);const auto=s.length&&s.every(x=>x.odds)?s.reduce((a,x)=>a*x.odds,1):null;
+    $("b-odds").placeholder=auto?odd(auto)+" (auto)":"auto";if(!o)o=auto;const st=num($("b-stake").value);
+    const bo=num($("b-boost").value);$("sum-odds").textContent=odd(o)+(bo?" +"+dec(bo)+"%":"");$("sum-pot").textContent=o&&st?eur(winAmt({stake:st,odds:o,boost:bo,freebet:$("b-free").checked})):"–";$("sum-prob").textContent=o?(100/o).toFixed(100/o<10?1:0).replace(".",",")+"%":"–";return{o,st,s}};
+  $("add-sel").onclick=()=>{$("selrows").insertAdjacentHTML("beforeend",selRow({}));renum();$("selrows").lastElementChild.querySelector("input").focus()};
+  $("selrows").addEventListener("click",e=>{if(e.target.closest("[data-rm]")){e.target.closest(".selrow").remove();renum();calc()}});
+  $("bet-form").addEventListener("input",calc);calc();
+  const qAdd=()=>{const ta=$("q-paste");if(!ta||!ta.value.trim())return;const rows=parsePasted(ta.value);if(!rows.length)return;
+    $("selrows").querySelectorAll(".selrow").forEach(r=>{const i=r.dataset.i;if(!$("s-ev-"+i).value.trim()&&!$("s-pick-"+i).value.trim()&&!$("s-odds-"+i).value.trim())r.remove()});
+    $("selrows").insertAdjacentHTML("beforeend",rows.map(selRow).join(""));renum();ta.value="";
+    const n=$("selrows").querySelectorAll(".selrow").length;$("b-type").value=n>1?"Combinada":"Simple";calc();
+    const miss=rows.filter(r=>!r.odds).length;toast(rows.length+(rows.length>1?" selecciones añadidas":" selección añadida")+(miss?" · faltan "+miss+" cuota"+(miss>1?"s":""):""))};
+  if($("q-paste")){$("q-add").onclick=qAdd;$("q-paste").addEventListener("paste",()=>setTimeout(qAdd,0));$("q-paste").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();qAdd()}})}
+  $("stake-chips").addEventListener("click",e=>{const c=e.target.closest("[data-u]");if(!c)return;$("b-stake").value=dec(+c.dataset.u);$("b-stake").dispatchEvent(new Event("input",{bubbles:true}))});
+  $("selrows").addEventListener("change",e=>{const el=e.target;if(!el.id||!el.id.startsWith("s-ev-"))return;const i=el.id.slice(5),comp=$("s-comp-"+i);if(comp.value.trim())return;const h=lookupHist(histIndex(),el.value.trim());if(h){comp.value=h.competition;$("s-sport-"+i).value=SPORTS.includes(h.sport)?h.sport:"Fútbol"}});
+  $("bet-form").addEventListener("keydown",e=>{if(e.key!=="Enter"||e.target.tagName==="TEXTAREA"||e.target.tagName==="BUTTON")return;
+    if(e.ctrlKey||e.metaKey){e.preventDefault();$("bet-form").requestSubmit();return}
+    const row=e.target.closest&&e.target.closest(".selrow");if(!row)return;e.preventDefault();
+    const inputs=[...row.querySelectorAll("input")],k=inputs.indexOf(e.target);
+    if(k>=0&&k<inputs.length-1){inputs[k+1].focus();return}
+    let nx=row.nextElementSibling;if(!nx){$("selrows").insertAdjacentHTML("beforeend",selRow({}));renum();nx=$("selrows").lastElementChild}
+    nx.querySelector("input").focus()});
+  bindSeg("b-origin");bindSeg("b-status",v=>{$("payout-f").hidden=v!=="cashout"});
+  const si=$("scan-in");if(si)si.onchange=async()=>{const f=si.files&&si.files[0];si.value="";if(!f)return;const er=$("form-err");er.style.color="var(--muted)";er.textContent="Leyendo el boleto…";
+    try{const d=await S.sample.json(SCAN_PROMPT,{images:[f]});
+      if(!d||!Array.isArray(d.selections)||!d.selections.length)throw{code:"invalid_json"};
+      if(d.book){const sel=$("b-book"),bn=String(d.book);if(![...sel.options].some(o=>o.value===bn))sel.insertAdjacentHTML("afterbegin",`<option value="${esc(bn)}">${esc(bn)}</option>`);sel.value=bn}
+      if(/^\d{4}-\d{2}-\d{2}$/.test(String(d.date||"")))$("b-date").value=d.date;
+      if(num(d.stake))$("b-stake").value=dec(num(d.stake));if(num(d.odds))$("b-odds").value=dec(num(d.odds));$("b-boost").value=num(d.boost_pct)?dec(num(d.boost_pct)):"";
+      $("b-free").checked=d.freebet===true;$("b-est").checked=false;$("b-type").value=d.selections.length>1?"Combinada":"Simple";
+      $("selrows").innerHTML=d.selections.map(x=>selRow({event:String(x.event||""),competition:String(x.competition||""),pick:String(x.pick||""),odds:num(x.odds),sport:SPORTS.includes(x.sport)?x.sport:"Otro"})).join("");renum();calc();
+      er.style.color="";er.textContent="";toast("Boleto leído: revisa los datos y guarda");
+    }catch(e){er.style.color="";er.textContent=e&&e.code==="invalid_json"?"No pude leer la captura. Prueba con una imagen más nítida.":(aiErrMsg(e)||"")}};
+  $("cancel").onclick=$("x").onclick=closeOverlay;
+  $("bet-form").onsubmit=async e=>{e.preventDefault();const {o,st,s}=calc();
+    if(!st||st<=0){$("form-err").textContent="Falta el stake.";$("b-stake").focus();return}
+    if(!o||o<1){$("form-err").textContent="Falta la cuota total o la de cada selección.";$("b-odds").focus();return}
+    const status=segVal("b-status");
+    const out={...b,id:b.id||newId("b"),date:$("b-date").value||today(),book:$("b-book").value,origin:segVal("b-origin"),type:$("b-type").value,stake:st,odds:+o.toFixed(4),status,
+      payout:status==="cashout"?num($("b-payout").value):null,title:$("b-title").value.trim(),selections:s,notes:$("b-notes").value.trim(),oddsEstimated:$("b-est").checked,boost:num($("b-boost").value)||null,freebet:$("b-free").checked,tags:[...new Set($("b-tags").value.split(",").map(t=>t.trim().toLowerCase()).filter(Boolean))],
+      created:b.created||Date.now(),settled:status==="pending"?null:(b.settled||today())};
+    closeOverlay();if(await put("bets","bets",out)){toast(editing?"Cambios guardados":"Boleto guardado");if(!editing){S.view="apuestas";S.status="all";render();openDrawer(out.id)}}};
+  setTimeout(()=>{const f=editing?$("b-stake"):isNew?$("q-paste"):$("selrows").querySelector("input");f&&f.focus()},30);
+}
+function openMoveForm(m){const editing=!!m;m=m||{date:today(),book:S.settings.defaultBook||S.bets[0]?.book||"Winamax",kind:"deposit",amount:"",note:""};
+  openOverlay(`<form class="sheet" id="mv-form" novalidate style="width:min(500px,100%)"><div class="sheet-h"><h2>${editing?"Editar movimiento":"Depósito o retirada"}</h2><button class="btn icon" type="button" id="x" aria-label="Cerrar">${IC.x}</button></div>
+    <div class="sheet-b">${segf("m-kind",[["deposit","Depósito"],["withdrawal","Retirada"],["bonus","Bono"]],m.kind)}
+      <div class="fields"><div class="field"><label for="m-amount">Importe</label><div class="money"><input id="m-amount" inputmode="decimal" value="${esc(dec(m.amount))}" placeholder="50"></div></div>
+        <div class="field"><label for="m-date">Fecha</label><input type="date" id="m-date" value="${esc(m.date)}"></div>
+        <div class="field"><label for="m-book">Casa</label><select id="m-book">${opts(BOOKS.includes(m.book)?BOOKS:[m.book,...BOOKS],m.book)}</select></div></div>
+      <div class="field"><label for="m-note">Nota</label><input id="m-note" value="${esc(m.note||"")}" placeholder="Bizum, transferencia, tarjeta…"></div></div>
+    <div class="summary"><span class="err" id="m-err" role="alert"></span><div style="display:flex;gap:8px;margin-left:auto"><button class="btn" type="button" id="cancel">Cancelar</button><button class="btn primary" type="submit">Guardar</button></div></div></form>`);
+  bindSeg("m-kind");$("cancel").onclick=$("x").onclick=closeOverlay;
+  $("mv-form").onsubmit=async e=>{e.preventDefault();const amount=num($("m-amount").value);if(!amount||amount<=0){$("m-err").textContent="Escribe un importe mayor que 0.";return}
+    const out={...m,id:m.id||newId("m"),kind:segVal("m-kind"),amount,date:$("m-date").value||today(),book:$("m-book").value,note:$("m-note").value.trim(),created:m.created||Date.now()};
+    closeOverlay();if(await put("moves","moves",out)){S.view="caja";render();toast("Movimiento guardado")}};
+  setTimeout(()=>$("m-amount").focus(),30)}
+function openSettings(){const s=S.settings;
+  openOverlay(`<form class="sheet" id="st-form" novalidate style="width:min(520px,100%)"><div class="sheet-h"><h2>Ajustes</h2><button class="btn icon" type="button" id="x" aria-label="Cerrar">${IC.x}</button></div>
+    <div class="sheet-b">
+      <div class="sec"><span class="sec-t">Juego responsable</span><div class="field"><label for="s-limit">Límite mensual de dinero apostado</label><div class="money"><input id="s-limit" inputmode="decimal" value="${esc(dec(s.monthlyLimit))}" placeholder="Sin límite"></div></div>
+        <p class="hint">Verás en el menú cuánto llevas apostado este mes. Déjalo vacío para quitarlo.</p></div>
+      <div class="sec"><span class="sec-t">Valores por defecto</span><div class="fields">
+        <div class="field"><label for="s-unit">Stake habitual</label><div class="money"><input id="s-unit" inputmode="decimal" value="${esc(dec(s.unit))}" placeholder="10"></div></div>
+        <div class="field"><label for="s-book">Casa habitual</label><select id="s-book"><option value="">La última usada</option>${opts(BOOKS,s.defaultBook)}</select></div></div></div>
+      <div class="sec"><span class="sec-t">Datos</span><button class="btn" type="button" id="s-export" style="align-self:flex-start">Exportar todo a CSV</button><p class="hint">Una fila por selección y otra por movimiento, separadas por punto y coma y con coma decimal. Lista para Excel o Power BI.</p></div>
+    </div>
+    <div class="summary"><span></span><div style="display:flex;gap:8px"><button class="btn" type="button" id="cancel">Cancelar</button><button class="btn primary" type="submit">Guardar</button></div></div></form>`);
+  $("cancel").onclick=$("x").onclick=closeOverlay;$("s-export").onclick=exportCSV;if(!S.dl)$("s-export").hidden=true;
+  $("st-form").onsubmit=async e=>{e.preventDefault();const out={monthlyLimit:num($("s-limit").value)||null,unit:num($("s-unit").value)||null,defaultBook:$("s-book").value||null};
+    closeOverlay();await saveSettings(out);render();toast("Ajustes guardados")}}
+
+/* ---------- Arranque ---------- */
+try{const v=localStorage.getItem("libreta-view");if(VIEWS[v])S.view=v;const p=localStorage.getItem("libreta-period");if(["7","30","month","year","all"].includes(p))S.period=p}catch(_){}
+render();
+(async()=>{
+  const use=window.claude&&window.claude.use;
+  let db=null,dl=null;
+  if(use){[db,dl]=await Promise.all([window.claude.use("db").catch(()=>null),window.claude.use("downloads").catch(()=>null)])}
+  if(use)window.claude.use("sample").then(async sm=>{if(!sm)return;S.sample=sm;const lim=await sm.limits().catch(()=>null);S.canImg=!!(lim&&lim.images);S.imgTypes=(lim&&lim.images&&lim.images.mediaTypes)||[]}).catch(()=>{});
+  S.dl=dl;$("side-export").hidden=!dl;
+  if(!db){S.noDb="Esta vista no puede guardar datos. Abre la libreta desde tu cuenta de Claude para ver y guardar tus apuestas.";render();return}
+  S.db=db;render();
+  const onErr=err=>toast(err&&err.code==="revoked"?"Ya no tienes acceso a estos datos.":"Se perdió la conexión con tus datos. Recarga la página.",true);
+  let rT;const schedule=()=>{clearTimeout(rT);rT=setTimeout(render,30)};
+  db.collection("bets").onSnapshot(s=>{S.bets=s.docs.map(d=>({id:d.id,...d.data()}));S.ready.bets=true;schedule()},onErr);
+  db.collection("moves").onSnapshot(s=>{S.moves=s.docs.map(d=>({id:d.id,...d.data()}));schedule()},onErr);
+  db.doc("settings/main").onSnapshot(s=>{S.settings=s.exists?{...s.data()}:{};schedule()},onErr);
+  db.doc("meta/autocheck").onSnapshot(s=>{S.meta=s.exists?{...s.data()}:{};schedule()},onErr);
+})();
+})();
+</script>
