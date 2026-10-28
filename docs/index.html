@@ -602,6 +602,22 @@ body{overflow-x:hidden;overscroll-behavior-x:none}
 @media (max-width:560px){.tablebox{margin:0}table{font-size:.78rem}th{font-size:.58rem;letter-spacing:.05em;white-space:normal;padding:6px 4px}td{white-space:normal;padding:8px 4px;overflow-wrap:anywhere}.mini{min-width:28px}.tablebox .bk{margin-right:4px}}
 @media (max-width:560px){.tablebox .mini{display:none}.tablebox td>div{gap:4px!important}}
 @media (max-width:560px){.card-b{padding:12px 14px 16px}.card-h{padding:14px 14px 0}}
+
+/* Móvil: cabecera y filtros compactos, sin cabecera fija que tape el contenido */
+@media (max-width:900px){
+  .topbar{position:static;backdrop-filter:none;-webkit-backdrop-filter:none;background:transparent}
+  .topbar .in{padding-block:12px 10px}
+  .topbar .tools{width:100%;gap:8px}
+  .seg{width:100%}.seg button{flex:1;padding:7px 0}
+  .search{flex:1 1 100%;order:3;min-width:0}
+  .fsel{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+  .fsel .sel-in{max-width:none;width:100%;min-width:0}
+  .listbar{gap:8px}
+  .stabs{flex-wrap:nowrap;gap:5px;width:100%}
+  .stabs button{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;gap:0;padding:6px 2px;font-size:.74rem;line-height:1.25;border-radius:14px;white-space:nowrap}
+  .stabs button span{font-size:.72rem;font-weight:600}
+}
+@media (min-width:901px){.fsel{display:flex;gap:8px;flex-wrap:wrap}}
 </style>
 
 <div class="app">
@@ -903,7 +919,7 @@ function renderApuestas(){
   else body=`<section class="card lc" style="overflow:hidden">${LHEAD}<div class="list">${bets.map(rowHTML).join("")}</div></section>`;
   return `<div class="listbar">
     <div class="stabs" id="stabs">${[["all","Todas"],["pending","En juego"],["won","Ganadas"],["lost","Perdidas"],["void","Nulas"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${S.status===v}">${l} <span>${cnt(v)}</span></button>`).join("")}</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <div class="fsel">
       <select class="sel-in" id="f-book" aria-label="Casa"><option value="all">Todas las casas</option>${books.map(b=>`<option value="${esc(b)}"${S.book===b?" selected":""}>${esc(b)}</option>`).join("")}</select>
       <select class="sel-in" id="f-origin" aria-label="Origen"><option value="all">Claude y mías</option><option value="claude"${S.origin==="claude"?" selected":""}>De Claude</option><option value="mine"${S.origin==="mine"?" selected":""}>Mías</option></select>
       ${(()=>{const tg=[...new Set(S.bets.flatMap(b=>b.tags||[]))].sort();return tg.length?`<select class="sel-in" id="f-tag" aria-label="Etiqueta"><option value="all">Todas las etiquetas</option>${tg.map(t=>`<option value="${esc(t)}"${S.tag===t?" selected":""}>#${esc(t)}</option>`).join("")}</select>`:""})()}
