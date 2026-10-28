@@ -989,6 +989,7 @@ function aiErrMsg(e){const c=e&&e.code;
     :c==="refusal"?"Claude no ha podido responder a esta petición."
     :c==="unauthorized"||c==="forbidden"?"Vuelve a iniciar sesión."
     :c==="network"?"Sin conexión con el servidor de IA."
+    :c==="ocr_load"?"No pude cargar el lector de fotos; comprueba tu conexión."
     :c==="invalid_json"?"La respuesta de la IA no tenía el formato esperado. Inténtalo otra vez."
     :"No se pudo completar. Inténtalo más tarde."}
 async function askSuggest(){if(!S.sample||S.sugBusy)return;
@@ -1259,6 +1260,98 @@ function parsePasted(text){
     out.push({event:ev,competition:comp||(h&&h.competition)||"",pick,odds,sport:(h&&h.sport)||guessSport(comp+" "+ev+" "+pick)});
   }
   return out}
+/* ---------- Lector gratuito de capturas: OCR en el navegador (Tesseract), sin IA de pago ---------- */
+let tessP=null;
+function loadTesseract(){return tessP||(tessP=new Promise((ok,ko)=>{if(window.Tesseract)return ok(window.Tesseract);
+  const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";s.onload=()=>ok(window.Tesseract);s.onerror=()=>{tessP=null;ko({code:"ocr_load"})};document.head.appendChild(s)}))}
+const plain=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const norm=s=>plain(s).replace(/[^a-z0-9]/g,"");
+const titleCase=s=>String(s).toLowerCase().replace(/(^|[\s\-.(])([a-zà-ÿ0-9])/g,(m,a,b)=>a+b.toUpperCase()).replace(/\b(Rb|Fc|Cf|Ac|As|Hfc|Psv|Cska|Sc|Sv|Vfb|Vfl|Tsg|Ssc|Ud|Cd|Ca|Rc|Ssd)\b/g,m=>m.toUpperCase());
+function lev(a,b){const m=a.length,n=b.length;if(!m||!n)return Math.max(m,n);let p=Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+function histTeams(){const m=new Map();for(const b of S.bets)for(const x of b.selections||[])for(const t of String(x.event||"").split(/\s[–—-]\s/))if(t.trim())m.set(norm(t),t.trim());return m}
+function matchTeam(raw,A,B){const toks=plain(raw).split(/[^a-z0-9]+/).filter(Boolean);if(!toks.length)return null;
+  const ok=T=>{const tt=plain(T).split(/[^a-z0-9]+/).filter(Boolean),n=norm(T);return toks.every(t=>t.length===1?tt.some(w=>w[0]===t):n.includes(t))};
+  const a=ok(A),b=ok(B);if(a&&!b)return A;if(b&&!a)return B;
+  const r=norm(raw),da=lev(r,norm(A)),db=lev(r,norm(B));
+  if(norm(A).includes(r)&&!norm(B).includes(r))return A;if(norm(B).includes(r)&&!norm(A).includes(r))return B;
+  const d=Math.min(da,db);return d<=Math.max(2,Math.round(r.length*.34))&&da!==db?(da<db?A:B):null}
+/* Etiquetas de color (verde = acertada, roja = fallada): se buscan por color y se leen una a una */
+function findChips(ctx,W,H,yMin,yMax,u){const d=ctx.getImageData(0,0,W,H).data,kd=(r,g,b)=>(g>150&&g>r*1.35&&g>b*1.35)?1:(r>190&&r>g*2&&r>b*2)?2:0;
+  const runs=[];
+  for(let y=Math.max(0,Math.floor(yMin));y<Math.min(H,Math.ceil(yMax));y++){let x=0;
+    while(x<W){const p=(y*W+x)*4,k=kd(d[p],d[p+1],d[p+2]);if(!k){x++;continue}
+      let s=x,e=x,gap=0;while(x<W&&gap<=Math.round(14*u)){const q=(y*W+x)*4;if(kd(d[q],d[q+1],d[q+2])===k){e=x;gap=0}else gap++;x++}
+      if(e-s>=8*u)runs.push({k,y,x0:s,x1:e+1,id:runs.length})}}
+  const par=runs.map((_,i)=>i),find=i=>par[i]===i?i:(par[i]=find(par[i]));
+  const byY=new Map();runs.forEach(r=>{(byY.get(r.y)||byY.set(r.y,[]).get(r.y)).push(r)});
+  for(const r of runs)for(const dy of [1,2]){for(const q of byY.get(r.y+dy)||[])if(q.k===r.k&&q.x0<r.x1&&r.x0<q.x1)par[find(q.id)]=find(r.id)}
+  const g={};for(const r of runs){const k=find(r.id),c=g[k]||(g[k]={k:r.k,x0:r.x0,x1:r.x1,y0:r.y,y1:r.y+1});c.x0=Math.min(c.x0,r.x0);c.x1=Math.max(c.x1,r.x1);c.y0=Math.min(c.y0,r.y);c.y1=Math.max(c.y1,r.y+1)}
+  return Object.values(g).filter(c=>c.x1-c.x0>=28*u&&c.y1-c.y0>=10*u&&(c.x1-c.x0)/(c.y1-c.y0)<16)}
+async function readChip(worker,ctx,c){const pad=2,w=c.x1-c.x0-pad*2,h=c.y1-c.y0-pad*2;if(w<8||h<6)return"";
+  const sc=Math.max(1,Math.min(4,70/h)),cw=Math.round(w*sc)+40,ch=Math.round(h*sc)+40,cv=document.createElement("canvas");cv.width=cw;cv.height=ch;
+  const cx=cv.getContext("2d");cx.fillStyle="#fff";cx.fillRect(0,0,cw,ch);cx.imageSmoothingQuality="high";cx.drawImage(ctx.canvas,c.x0+pad,c.y0+pad,w,h,20,20,w*sc,h*sc);
+  const im=cx.getImageData(0,0,cw,ch),px=im.data;for(let i=0;i<px.length;i+=4){const l=.299*px[i]+.587*px[i+1]+.114*px[i+2],v=c.k===2?(l>195?0:255):(l<115?0:255);px[i]=px[i+1]=px[i+2]=v}
+  cx.putImageData(im,0,0);return String((await worker.recognize(cv)).data.text||"").replace(/\s+/g," ").replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}.]+$/gu,"").trim()}
+function boxSport(ctx,b){if(!b)return null;const x0=Math.max(0,Math.floor(b.x0)),y0=Math.max(0,Math.floor(b.y0)),w=Math.max(1,Math.floor(b.x1-b.x0)),h=Math.max(1,Math.floor(b.y1-b.y0));
+  const d=ctx.getImageData(x0,y0,w,h).data;let or=0,wh=0,n=d.length/4;
+  for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],bl=d[i+2];if(r>190&&g>70&&g<190&&bl<110)or++;else if(r>205&&g>205&&bl>205)wh++}
+  return or/n>.08?"Baloncesto":wh/n>.08?"Fútbol":null}
+async function readTicketOCR(file,progress){
+  const T=await loadTesseract();
+  const bmp=await createImageBitmap(file);
+  const k=bmp.width<900?1000/bmp.width:bmp.width>1300?1200/bmp.width:1,W=Math.round(bmp.width*k),H=Math.round(bmp.height*k),u=W/600;
+  const cc=document.createElement("canvas");cc.width=W;cc.height=H;const cx=cc.getContext("2d",{willReadFrequently:true});cx.drawImage(bmp,0,0,W,H);
+  const oc=document.createElement("canvas");oc.width=W;oc.height=H;const ox=oc.getContext("2d");ox.drawImage(cc,0,0);
+  const im=ox.getImageData(0,0,W,H),px=im.data;for(let i=0;i<px.length;i+=4){let y=.299*px[i]+.587*px[i+1]+.114*px[i+2];y=255-y;y=Math.max(0,Math.min(255,(y-128)*1.25+128));px[i]=px[i+1]=px[i+2]=y}ox.putImageData(im,0,0);
+  const worker=await T.createWorker("spa",1,{logger:m=>{if(m.status==="recognizing text"&&progress)progress(Math.round(m.progress*100))}});
+  try{
+    const data=(await worker.recognize(oc)).data;
+    let L=(data.lines||[]).map(l=>({t:String(l.text||"").replace(/\s+/g," ").trim(),b:l.bbox,w:l.words||[]})).filter(l=>l.t);
+    if(!L.length&&data.text)L=data.text.split("\n").map(t=>({t:t.trim(),b:null,w:[]})).filter(l=>l.t);
+    const dateRe=/(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{4})/,evRe=/^(.{3,}?)\s+[-–—]\s+(.{2,})$/;
+    const tailOdds=t=>{const s=t.replace(/\s+/g,"");let m=s.match(/(?:^|\D)(\d{1,2}[.,]\d{2})$/);if(m)return parseFloat(m[1].replace(",","."));m=s.match(/(?:^|\D)([1-9])(\d{2})$/);return m?parseFloat(m[1]+"."+m[2]):null};
+    const evIdx=[];L.forEach((l,i)=>{if(evRe.test(l.t)&&!/[:€]/.test(l.t)&&[1,2].some(d=>L[i+d]&&dateRe.test(L[i+d].t)))evIdx.push(i)});
+    if(!evIdx.length)throw{code:"invalid_json"};
+    const head=L.slice(0,evIdx[0]).map(l=>l.t),hs=head.join("\n"),all=L.map(l=>l.t).join("\n");
+    const numAfter=re=>{const i=head.findIndex(t=>re.test(t));if(i<0)return null;for(const t of [head[i].replace(re,""),head[i+1]||""]){const m=t.replace(/\s+/g,"").match(/(\d{1,4}(?:[.,]\d{1,2})?)/);if(m)return parseFloat(m[1].replace(",","."))}return null};
+    let stake=numAfter(/IMPORTE\s*:?/i);if(stake==null){const m=hs.match(/(\d+(?:[.,]\d{1,2})?)\s*€/);if(m)stake=parseFloat(m[1].replace(",","."))}
+    const total=numAfter(/CUOTA\s*:?/i);
+    const status=/\bPERDID[OA]\b/i.test(hs)?"lost":/\bGANAD[OA]\b/i.test(hs)?"won":/\bANULAD[OA]\b|\bNUL[OA]\b/i.test(hs)?"void":null;
+    const book=/winamax/i.test(all)?"Winamax":/sportium/i.test(all)?"Sportium":null;
+    const foot=L.findIndex((l,i)=>i>evIdx[evIdx.length-1]&&/LO M[AÁ]S IMPORTANTE|WINAMAX\.ES/i.test(l.t));
+    const yMin=L[evIdx[0]].b?L[evIdx[0]].b.y0-6*u:0,yMax=foot>=0&&L[foot].b?L[foot].b.y0:H;
+    const chips=L[evIdx[0]].b?findChips(cx,W,H,yMin,yMax,u):[];
+    await worker.setParameters({tessedit_pageseg_mode:"7"});
+    const teams=histTeams(),idx=histIndex(),sels=[];let date=null;
+    for(let n=0;n<evIdx.length;n++){const i=evIdx[n],end=n+1<evIdx.length?evIdx[n+1]:L.length,line=L[i];
+      const block=L.slice(i+1,end).filter(l=>!/LO M[AÁ]S IMPORTANTE|WINAMAX\.ES/i.test(l.t));
+      const jw=line.w[0]&&line.w[0].text||"",junk=line.w.length>1&&(jw.length===1&&!/[.]/.test(jw)||!/[\p{L}\p{N}]/u.test(jw));
+      const evText=junk?line.t.slice(jw.length).trim():line.t,m=evText.match(evRe)||line.t.match(evRe);
+      const canon=t=>{const c=titleCase(t.trim());return teams.get(norm(c))||c},A=canon(m[1]),B=canon(m[2]),ev=A+" – "+B;
+      const dl=block.find(l=>dateRe.test(l.t));if(dl&&!date){const d=dl.t.match(dateRe);date=d[3]+"-"+String(d[2]).padStart(2,"0")+"-"+String(d[1]).padStart(2,"0")}
+      const rest=block.filter(l=>l!==dl);let odds=null;
+      for(let j=rest.length-1;j>=0&&odds==null;j--)odds=tailOdds(rest[j].t);
+      const ml=rest.find(l=>/^[^:]{3,40}:/.test(l.t)),market=ml?ml.t.match(/^([^:]{3,40}):/)[1].trim():(rest.map(l=>l.t.match(/^(resultado|doble oportunidad|ganador|m[aá]s de|menos de|ambos marcan|total|h[aá]ndicap|handicap)/i)).find(Boolean)||[""])[0];
+      const y0=line.b?line.b.y0-2*u:-1,y1=end<L.length&&L[end].b?L[end].b.y0-2*u:H;
+      const chip=chips.filter(c=>{const cy=(c.y0+c.y1)/2;return cy>=y0&&cy<y1}).sort((a,b)=>(b.x1-b.x0)*(b.y1-b.y0)-(a.x1-a.x0)*(a.y1-a.y0))[0];
+      let pick="",result="pending";
+      if(chip){result=chip.k===1?"won":"lost";pick=await readChip(worker,cx,chip)}
+      if(!pick&&ml){const t=ml.t.replace(/^[^:]{3,40}:\s*/,"").replace(/\s*\d[\d\s]*[.,]\s*\d\s*\d\s*$/,"").trim();pick=t}
+      const pt=matchTeam(pick.replace(/\s+o\s+empate\b.*$/i,"").replace(/^empate\s+o\s+/i,""),A,B),pl2=plain(pick).trim();let ptxt;
+      if(/doble/i.test(market)&&pt)ptxt=pt+" o empate ("+(pt===A?"1X":"X2")+")";
+      else if(/resultado|ganador/i.test(market)&&/^empate$/.test(pl2))ptxt="Empate";
+      else if(/resultado|ganador/i.test(market)&&pt)ptxt="Gana "+pt;
+      else ptxt=pick?(market&&!/^(resultado|ganador)$/i.test(market)?market+": ":"")+pick:"";
+      const ib=junk?line.w[0].bbox:(line.b?{x0:line.b.x0-50*u,x1:line.b.x0-6*u,y0:line.b.y0,y1:line.b.y1}:null);
+      const h=lookupHist(idx,ev);
+      sels.push({event:ev,competition:(h&&h.competition)||"",sport:boxSport(cx,ib)||(h&&h.sport)||guessSport(ev+" "+pick),pick:ptxt,odds,result})}
+    const miss=sels.filter(x=>!x.odds);if(total&&miss.length===1){const p=sels.filter(x=>x.odds).reduce((a,x)=>a*x.odds,1),v=total/p;if(v>=1.05&&v<=30)miss[0].odds=+v.toFixed(2)}
+    const prod=sels.every(x=>x.odds)?sels.reduce((a,x)=>a*x.odds,1):null;
+    const out={book,date,stake,selections:sels,status};
+    if(total&&(!prod||Math.abs(prod/total-1)>.015))out.odds=total;
+    return out
+  }finally{await worker.terminate()}}
 function openBetForm(b,isDup){
   const isNew=!b;const editing=!!(b&&b.id);const def=S.settings.defaultBook||S.bets[0]?.book||"Winamax";
   b=b||{date:today(),book:def,origin:"mine",type:"Combinada",status:"pending",stake:S.settings.unit||"",odds:"",selections:[{},{}]};
@@ -1266,7 +1359,7 @@ function openBetForm(b,isDup){
   const evs=[...new Set(S.bets.flatMap(x=>(x.selections||[]).map(s=>s.event)).filter(Boolean))].slice(-120),pks=[...new Set(S.bets.flatMap(x=>(x.selections||[]).map(s=>s.pick)).filter(Boolean))].slice(-120);
   const units=[...new Set([num(S.settings.unit),5,10,20,50].filter(Boolean))].sort((x,y)=>x-y);
   openOverlay(`<form class="sheet" id="bet-form" novalidate><datalist id="dl-comp">${comps.map(c=>`<option value="${esc(c)}">`).join("")}</datalist><datalist id="dl-ev">${evs.map(c=>`<option value="${esc(c)}">`).join("")}</datalist><datalist id="dl-pick">${pks.map(c=>`<option value="${esc(c)}">`).join("")}</datalist>
-    <div class="sheet-h"><h2>${editing?"Editar boleto":isDup?"Duplicar boleto":"Nuevo boleto"}</h2><div style="display:flex;gap:8px;align-items:center">${S.canImg&&S.sample?`<label class="btn sm" for="scan-in" title="Sube una captura del boleto y se rellena solo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 16-5-5-8 8"/></svg>Leer captura</label><input type="file" id="scan-in" accept="${esc((S.imgTypes||[]).join(","))}" hidden>`:""}<button class="btn icon" type="button" id="x" aria-label="Cerrar">${IC.x}</button></div></div>
+    <div class="sheet-h"><h2>${editing?"Editar boleto":isDup?"Duplicar boleto":"Nuevo boleto"}</h2><div style="display:flex;gap:8px;align-items:center">${`<label class="btn sm" for="scan-in" title="Sube una captura del boleto y se rellena solo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 16-5-5-8 8"/></svg>Leer captura</label><input type="file" id="scan-in" accept="image/*" hidden>`}<button class="btn icon" type="button" id="x" aria-label="Cerrar">${IC.x}</button></div></div>
     <div class="sheet-b">
       ${isNew?`<div class="sec quick"><span class="sec-t">Alta rápida</span><textarea id="q-paste" rows="3" spellcheck="false" aria-label="Selecciones en texto" placeholder="Pega o escribe una selección por línea:
 Roma - Cagliari 1 @1,25
@@ -1321,15 +1414,16 @@ Alanyaspor - Bingölspor | Gana Alanyaspor | 1,12"></textarea><div class="q-row"
     nx.querySelector("input").focus()});
   bindSeg("b-origin");bindSeg("b-status",v=>{$("payout-f").hidden=v!=="cashout"});
   const si=$("scan-in");if(si)si.onchange=async()=>{const f=si.files&&si.files[0];si.value="";if(!f)return;const er=$("form-err");er.style.color="var(--muted)";er.textContent="Leyendo el boleto…";
-    try{const d=await S.sample.json(SCAN_PROMPT,{images:[f]});
+    try{const useAI=!!(S.canImg&&S.sample);const d=useAI?await S.sample.json(SCAN_PROMPT,{images:[f]}):await readTicketOCR(f,p=>{er.textContent="Leyendo el boleto… "+p+"%"});
       if(!d||!Array.isArray(d.selections)||!d.selections.length)throw{code:"invalid_json"};
       if(d.book){const sel=$("b-book"),bn=String(d.book);if(![...sel.options].some(o=>o.value===bn))sel.insertAdjacentHTML("afterbegin",`<option value="${esc(bn)}">${esc(bn)}</option>`);sel.value=bn}
       if(/^\d{4}-\d{2}-\d{2}$/.test(String(d.date||"")))$("b-date").value=d.date;
       if(num(d.stake))$("b-stake").value=dec(num(d.stake));if(num(d.odds))$("b-odds").value=dec(num(d.odds));$("b-boost").value=num(d.boost_pct)?dec(num(d.boost_pct)):"";
       $("b-free").checked=d.freebet===true;$("b-est").checked=false;$("b-type").value=d.selections.length>1?"Combinada":"Simple";
-      $("selrows").innerHTML=d.selections.map(x=>selRow({event:String(x.event||""),competition:String(x.competition||""),pick:String(x.pick||""),odds:num(x.odds),sport:SPORTS.includes(x.sport)?x.sport:"Otro"})).join("");renum();calc();
+      $("selrows").innerHTML=d.selections.map(x=>selRow({event:String(x.event||""),competition:String(x.competition||""),pick:String(x.pick||""),odds:num(x.odds),sport:SPORTS.includes(x.sport)?x.sport:"Otro",result:["won","lost","void"].includes(x.result)?x.result:"pending"})).join("");renum();calc();
+      if(["won","lost","void"].includes(d.status)){const sb=$("b-status").querySelector('[data-v="'+d.status+'"]');if(sb)sb.click()}
       er.style.color="";er.textContent="";toast("Boleto leído: revisa los datos y guarda");
-    }catch(e){er.style.color="";er.textContent=e&&e.code==="invalid_json"?"No pude leer la captura. Prueba con una imagen más nítida.":(aiErrMsg(e)||"")}};
+    }catch(e){er.style.color="";er.textContent=e&&e.code==="invalid_json"?"No pude leer la captura. Prueba con una imagen más nítida, o escribe las selecciones en Alta rápida.":(aiErrMsg(e)||"")}};
   $("cancel").onclick=$("x").onclick=closeOverlay;
   $("bet-form").onsubmit=async e=>{e.preventDefault();const {o,st,s}=calc();
     if(!st||st<=0){$("form-err").textContent="Falta el stake.";$("b-stake").focus();return}
