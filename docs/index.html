@@ -690,6 +690,72 @@ body{overflow-x:hidden;overscroll-behavior-x:none}
 .tl-item>svg{width:22px;height:22px;color:var(--accent-text);flex:none}
 .tl-item small{display:block;font-weight:400;color:var(--muted);font-size:.8rem;margin-top:1px}
 .tl-info{display:flex;flex-direction:column;gap:10px;padding:4px 16px 18px}
+
+/* ---------- Reto ---------- */
+body[data-page="reto"] #period,body[data-page="reto"] .search{display:none}
+@media (max-width:900px){body[data-page="reto"] .tools{display:none}}
+.lad{width:100%;height:auto;display:block;overflow:visible}
+.lad text{fill:var(--faint);font:11px var(--f-mono)}
+.rt-hero{position:relative;overflow:hidden;padding:22px 24px 18px;border-radius:22px;background:radial-gradient(560px 260px at 100% 0%,rgba(47,91,234,.2),transparent 70%),var(--card);display:flex;flex-direction:column;gap:8px}
+.rt-hero.win{background:radial-gradient(560px 260px at 50% 0%,rgba(52,211,153,.28),transparent 70%),var(--card);border-color:var(--won)}
+.rt-top{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.rt-bank{font-size:clamp(2.6rem,6vw,4rem);font-weight:600;letter-spacing:-.05em;line-height:1.05;font-variant-numeric:tabular-nums;margin-top:6px}
+.rt-sub{color:var(--muted);font-size:.9rem;margin-top:2px}
+.rt-lad{margin:10px 0 0;padding:0 2px}
+.medals{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.medal{padding:5px 11px;border-radius:99px;border:1px solid var(--line);font:600 .76rem var(--f-body);color:var(--faint);background:var(--card-2)}
+.medal.on{color:var(--won);border-color:color-mix(in srgb,var(--won) 45%,transparent);background:var(--won-soft)}
+.rt-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;align-items:start}
+.rt-col{display:flex;flex-direction:column;gap:20px;min-width:0}
+@media (max-width:980px){.rt-grid{grid-template-columns:minmax(0,1fr)}}
+.rt-rule{margin:0;font-size:.95rem}
+.rt-calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.rt-calc .field span{font-size:.76rem;font-weight:600;color:var(--muted)}
+.rt-calc input{font:600 1.05rem var(--f-mono);text-align:center}
+.rt-out{padding:12px 14px;border-radius:12px;background:var(--card-2);font-size:.9rem;min-height:46px;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.rt-btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.rt-sels{list-style:none;margin:0;padding:0;border-top:1px dashed var(--line)}
+.rt-sels li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line-2);font-size:.9rem}
+.rt-sels small{display:block;color:var(--muted);font-size:.78rem}
+.rt-sels b{font-family:var(--f-mono)}
+.rt-pot{margin:0;font-size:.9rem}
+.rt-path{display:flex;flex-wrap:wrap;gap:8px}
+.rt-chip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 6px;border-radius:99px;border:1px dashed var(--line);font:600 .78rem var(--f-mono);color:var(--muted)}
+.rt-chip i{font-style:normal;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--card-2);font-size:.68rem}
+.rt-chip.done{border-style:solid;border-color:color-mix(in srgb,var(--won) 45%,transparent);color:var(--won);background:var(--won-soft)}
+.rt-chip.done i{background:var(--won);color:#fff}
+.rt-chip.bad{border-style:solid;border-color:color-mix(in srgb,var(--lost) 45%,transparent);color:var(--lost);background:var(--lost-soft)}
+.rt-chip.bad i{background:var(--lost);color:#fff}
+.rt-chip.now{border-style:solid;border-color:var(--accent);color:var(--ink);box-shadow:0 0 0 3px var(--accent-soft)}
+.rt-chip.now i{background:var(--accent);color:#fff}
+.rt-timeline{list-style:none;margin:0;padding:0}
+.rt-step{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:flex-start;width:100%;padding:12px 0;border:0;background:none;color:inherit;text-align:left;cursor:pointer;position:relative}
+.rt-step::before{content:"";position:absolute;left:16px;top:46px;bottom:-14px;width:2px;background:var(--line)}
+.rt-timeline li:last-child .rt-step::before{display:none}
+.rt-node{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 .85rem var(--f-mono);border:2px solid var(--line);background:var(--card-2);color:var(--muted);z-index:1}
+.rt-node.won{background:var(--won);border-color:var(--won);color:#fff}
+.rt-node.lost{background:var(--lost);border-color:var(--lost);color:#fff}
+.rt-node.pending{border-color:var(--pend);color:var(--pend)}
+.rt-body b{display:block;font-size:.92rem}
+.rt-body small{display:block;color:var(--muted);font-size:.78rem;line-height:1.4}
+.rt-empty{padding:0;overflow:hidden;border-radius:22px;background:radial-gradient(560px 280px at 100% 0%,rgba(47,91,234,.2),transparent 70%),var(--card)}
+.rt-empty-in{padding:30px 28px;display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.rt-empty h2{font-size:clamp(1.6rem,3.4vw,2.3rem)}
+.rt-empty p{margin:0;max-width:60ch}
+.rt-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%}
+.rt-facts div{background:var(--card-2);border-radius:14px;padding:12px 14px}
+.rt-facts b{display:block;font-size:1.6rem;letter-spacing:-.03em}
+.rt-facts span{font-size:.76rem;color:var(--muted)}
+@media (max-width:640px){.rt-facts{grid-template-columns:1fr}}
+.rt-mini{cursor:pointer}
+.rt-mini-in{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:18px;align-items:center;padding:16px 20px}
+.rt-mini-bank{font-size:1.9rem;font-weight:600;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.rt-mini-in p{margin:2px 0 0}
+.rt-mini .lbl{font-size:.68rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--faint)}
+@media (max-width:640px){.rt-mini-in{grid-template-columns:1fr}}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-16px;width:8px;height:14px;border-radius:2px;opacity:.9}
+@media (prefers-reduced-motion:no-preference){.confetti i{animation:cfall 3s linear infinite}@keyframes cfall{to{transform:translateY(380px) rotate(560deg);opacity:0}}}
 </style>
 
 <div class="app">
@@ -741,7 +807,7 @@ const SCAN_PROMPT=`La imagen es una captura de un boleto de apuestas deportivas 
 {"book":"Winamax","date":"2026-10-27","stake":10,"odds":7.39,"boost_pct":16,"freebet":false,"selections":[{"event":"Roma – Cagliari","competition":"Serie A","sport":"Fútbol","pick":"Gana Roma","odds":1.25}]}
 Reglas: "book" es el nombre de la casa (Winamax, Sportium, Bet365, Codere, Bwin, Betfair, William Hill, Betway, Luckia, Marca Apuestas, Retabet u otra). "date" en formato AAAA-MM-DD. "stake" es el importe apostado y "odds" la cuota total SIN bonificaciones, ambos como números. "boost_pct" es el porcentaje de un potenciador o Combo Booster si aparece; si no, 0. "freebet" es true solo si es una apuesta gratis. En cada selección: "event" con los dos equipos separados por " – " y nombres normales (no en mayúsculas); "pick" el pronóstico en español breve (Gana Roma, Lazio o empate (X2), Más de 2,5 goles…); "odds" su cuota como número; "sport" uno de Fútbol, Baloncesto, Tenis u Otro; "competition" solo si aparece o es inequívoca por los equipos, si no cadena vacía. Si un dato no aparece, usa null.`;
 const STATUS={pending:"Pendiente",won:"Ganada",lost:"Perdida",void:"Nula",cashout:"Cash out"};
-const VIEWS={panel:["Panel","Resumen de tu actividad"],informe:["Informe","Tu resumen en gráficos"],apuestas:["Apuestas","Todos tus boletos"],analisis:["Análisis","Qué te funciona y qué no"],caja:["Caja","Depósitos, retiradas y saldo por casa"]};
+const VIEWS={panel:["Panel","Resumen de tu actividad"],informe:["Informe","Tu resumen en gráficos"],apuestas:["Apuestas","Todos tus boletos"],analisis:["Análisis","Qué te funciona y qué no"],caja:["Caja","Depósitos, retiradas y saldo por casa"],reto:["Reto","De 5 € a 200 €, paso a paso"]};
 const SVG=(d,extra="")=>`<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extra}>${d}</svg>`;
 const IC={panel:SVG('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>'),
   apuestas:SVG('<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 5v12" stroke-dasharray="2 2.2"/>'),
@@ -753,6 +819,7 @@ const IC={panel:SVG('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="1
   x:SVG('<path d="M6 6l12 12M18 6 6 18"/>'),
   edit:SVG('<path d="M4 20h4L19 9l-4-4L4 16z"/>'),
   copy:SVG('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+  reto:SVG('<path d="M5 21V4"/><path d="M5 4h12l-2.5 4L17 12H5"/>'),
   tools:SVG('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'),
   sun:SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
   moon:SVG('<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>'),
@@ -763,7 +830,7 @@ const IC={panel:SVG('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="1
   up:'<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 2l4 6H2z" fill="currentColor"/></svg>',
   down:'<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 10 2 4h8z" fill="currentColor"/></svg>'};
 
-const S={bets:[],moves:[],settings:{},view:"panel",period:"all",status:"all",book:"all",origin:"all",sort:"recent",chartMode:"profit",kDim:"type",meta:{},tag:"all",
+const S={bets:[],moves:[],settings:{},view:"panel",period:"all",status:"all",book:"all",origin:"all",sort:"recent",chartMode:"profit",kDim:"type",meta:{},tag:"all",challenges:[],
   db:null,dl:null,ready:{bets:false},drawer:null,confirm:null,cashout:false,noDb:null};
 const $=id=>document.getElementById(id);
 const fmt=new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR",minimumFractionDigits:2,maximumFractionDigits:2});
@@ -947,6 +1014,7 @@ function renderPanel(){
     <div class="card kpi"><span class="lbl">Saldo estimado</span><span class="val">${S.moves.length?eur(bal):"–"}</span><span class="foot">${S.moves.length?"en todas tus casas":'<button type="button" class="btn sm" data-newmove>Añadir depósito</button>'}</span></div>
     <div class="card kpi"><span class="lbl">En juego</span><span class="val">${eur(all.pendStake)}</span><span class="foot">${all.pend} ${all.pend===1?"boleto":"boletos"} · cobro posible ${eur(all.pendPot)}</span></div>
   </section>
+  ${retoMini()}
   ${sugCard()}
   <div class="grid g-main">
     <section class="card lc" style="overflow:hidden"><div class="card-h" style="padding-bottom:12px"><h2>En juego</h2><span class="aside">${pend.length?eur(all.pendStake)+" arriesgados":"nada pendiente"}</span></div>
@@ -1335,12 +1403,181 @@ async function shareTicket(b){
 function openTools(){const light=curTheme()==="light";
   const it=(k,ic,t,s)=>`<button class="tl-item" type="button" data-tool="${k}">${ic}<span>${t}${s?`<small>${s}</small>`:""}</span></button>`;
   openOverlay(`<div class="sheet toolsheet" role="dialog" aria-label="Herramientas"><div class="sheet-h"><h2>Herramientas</h2><button class="btn icon" type="button" id="x" aria-label="Cerrar">${IC.x}</button></div>
-    <div class="tl-list">${it("new",IC.plus,"Nueva apuesta","Pega las selecciones o lee una captura")}${it("move",IC.caja,"Depósito o retirada","Apunta el dinero que entra y sale")}${it("export",IC.informe,"Exportar CSV","Para Power BI o Excel")}${it("settings",IC.tools,"Ajustes","Límite mensual, stake y casa habitual")}${it("theme",light?IC.moon:IC.sun,light?"Modo oscuro":"Modo claro","Cambia el aspecto de la app")}</div>
+    <div class="tl-list">${it("reto",IC.reto,"Reto 5 → 200","Escalera, pasos y estadísticas")}${it("new",IC.plus,"Nueva apuesta","Pega las selecciones o lee una captura")}${it("move",IC.caja,"Depósito o retirada","Apunta el dinero que entra y sale")}${it("export",IC.informe,"Exportar CSV","Para Power BI o Excel")}${it("settings",IC.tools,"Ajustes","Límite mensual, stake y casa habitual")}${it("theme",light?IC.moon:IC.sun,light?"Modo oscuro":"Modo claro","Cambia el aspecto de la app")}</div>
     <div class="tl-info"><div class="side-card">${$("side-limit").innerHTML}</div><div class="auto">${$("side-auto").innerHTML}</div></div></div>`);
   $("x").onclick=closeOverlay}
 $("overlay").addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-tool]");if(!t)return;const a=t.dataset.tool;
   if(a==="theme"){toggleTheme();openTools();return}
-  closeOverlay();if(a==="new")openBetForm();else if(a==="move")openMoveForm();else if(a==="export")exportCSV();else if(a==="settings")openSettings()});
+  closeOverlay();if(a==="reto"){S.view="reto";render();window.scrollTo({top:0})}else if(a==="new")openBetForm();else if(a==="move")openMoveForm();else if(a==="export")exportCSV();else if(a==="settings")openSettings()});
+/* ---------- Reto: de 5 € a 200 € paso a paso ---------- */
+const HOUSE=.96; /* parte del dinero que devuelve la casa por apuesta (margen ~4 %) */
+const retoList=()=>S.challenges.slice().sort((a,b)=>(a.created||0)-(b.created||0));
+const retoPct=p=>p>=.995?"≈100 %":(p*100).toFixed(p<.1?1:0).replace(".",",")+" %";
+function chInfo(c){
+  const s=+c.start||5,g=+c.goal||200;
+  const bets=S.bets.filter(b=>b.challengeId===c.id).sort((a,b)=>(a.stepN||0)-(b.stepN||0)||(a.created||0)-(b.created||0));
+  let bank=s,best=s,run=0,bestRun=0,state="active",pending=null;const steps=[];
+  for(const b of bets){const r=ret(b),before=bank;
+    if(r==null){pending=b;steps.push({n:steps.length+1,bet:b,before,after:null,res:"pending"});break}
+    const res=b.status;bank=r;
+    if(res==="won"){run++;bestRun=Math.max(bestRun,run)}else if(res==="lost"){run=0;state="lost"}
+    best=Math.max(best,bank);steps.push({n:steps.length+1,bet:b,before,after:r,res});
+    if(res==="lost")break}
+  if(state!=="lost"&&bank>=g-1e-9)state="won";else if(state==="active"&&c.status==="stopped")state="stopped";
+  const mid=((+c.oddsMin||1.2)+(+c.oddsMax||1.35))/2,lg=Math.max(1,+c.maxLegs||1),stepOdds=Math.pow(mid,lg),pStep=Math.pow(HOUSE/mid,lg);
+  const base=pending?steps[steps.length-1].before:bank;
+  const k=state==="active"?Math.max(1,Math.ceil(Math.log(g/base)/Math.log(stepOdds)-1e-9)):0;
+  const prob=state==="won"?1:state==="active"?Math.pow(pStep,k):state==="lost"?0:null;
+  const k0=Math.max(1,Math.ceil(Math.log(g/s)/Math.log(stepOdds)-1e-9));
+  return{c,s,g,steps,bank,base,best,run,bestRun,state,pending,mid,lg,stepOdds,pStep,k,k0,prob,curN:pending?steps.length:steps.length+1}}
+function retoSub(){const cs=retoList();if(!cs.length)return"De 5 € a 200 €, paso a paso";const I=chInfo(cs[cs.length-1]);
+  return"Intento "+(I.c.attemptNo||1)+" · "+eur(I.bank)+" de "+eur(I.g)+(I.state==="won"?" · ¡completado!":I.state==="lost"?" · terminado":I.state==="stopped"?" · retirado":"")}
+function retoRuleWarn(c,b){const sels=b.selections||[],mn=+c.oddsMin||1.2,mx=+c.oddsMax||1.35,lg=+c.maxLegs||1,bad=sels.filter(x=>+x.odds&&(+x.odds<mn-.005||+x.odds>mx+.005));
+  const w=[];if(sels.length>lg)w.push("más de "+lg+" selecciones");if(bad.length)w.push(bad.length+" fuera de "+odd(mn)+"–"+odd(mx));return w.length?"ojo, "+w.join(" y "):""}
+
+/* Escalera: el progreso va en escala logarítmica, así cada paso ocupa un trozo parecido */
+function ladderSVG(I,mini){
+  const s=I.s,g=I.g,nr=innerWidth<560,W=nr?420:760,H=mini?60:(nr?150:176),x0=nr?22:30,x1=W-x0,y=mini?32:(nr?80:96),L=Math.log(g/s);
+  const pos=v=>x0+(x1-x0)*Math.max(0,Math.min(1,Math.log(Math.max(v,s*1e-4)/s)/L));
+  const ms=[2,5,10,20].filter(m=>s*m<g*.97).map(m=>s*m).concat([g]),id="lg"+(mini?"m":"h");
+  let o=`<svg class="lad" viewBox="0 0 ${W} ${H}" role="img" aria-label="Progreso del reto: ${esc(eur(I.bank))} de ${esc(eur(g))}"><defs><linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--won)"/></linearGradient></defs>`;
+  o+=`<rect x="${x0}" y="${y-5}" width="${x1-x0}" height="10" rx="5" fill="var(--line-2)" stroke="var(--line)"/>`;
+  const px=pos(I.bank);if(px>x0)o+=`<rect x="${x0}" y="${y-5}" width="${(px-x0).toFixed(1)}" height="10" rx="5" fill="url(#${id})"/>`;
+  ms.forEach((v,i)=>{const x=pos(v),on=I.best>=v-1e-9,last=i===ms.length-1;
+    o+=`<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${y-(mini?9:18)}" y2="${y+(mini?9:18)}" stroke="${on?"var(--won)":"var(--faint)"}" stroke-width="2" stroke-linecap="round"/>`;
+    if(!mini)o+=`<text x="${x.toFixed(1)}" y="${y-28}" text-anchor="middle" style="fill:${on?"var(--won)":"var(--muted)"};font-weight:600">${last?"META":"×"+(Math.round(v/s*10)/10)}</text><text x="${x.toFixed(1)}" y="${y+38}" text-anchor="middle">${esc(fmt0.format(v))} €</text>`;
+    else if(last)o+=`<text x="${x.toFixed(1)}" y="${y+26}" text-anchor="end">${esc(fmt0.format(v))} €</text>`});
+  o+=`<text x="${x0}" y="${mini?y+26:y+38}" text-anchor="start">${esc(fmt0.format(s))} €</text>`;
+  if(I.state==="active"){let v=I.bank,n=0;while(n<24){v*=I.stepOdds;if(v>=g)break;o+=`<circle cx="${pos(v).toFixed(1)}" cy="${y}" r="3.2" fill="var(--card)" stroke="var(--faint)" stroke-width="1.4"/>`;n++}}
+  I.steps.forEach(st=>{if(st.res==="pending")return;const xx=pos(st.res==="lost"?st.before:st.after);
+    if(st.res==="lost")o+=`<text x="${xx.toFixed(1)}" y="${y+5}" text-anchor="middle" style="fill:var(--lost);font:700 16px var(--f-body)">✕</text>`;
+    else{o+=`<circle cx="${xx.toFixed(1)}" cy="${y}" r="${mini?3.4:4.6}" fill="var(--card)" stroke="var(--won)" stroke-width="2"/>`;if(!mini&&I.steps.length<=14)o+=`<text x="${xx.toFixed(1)}" y="${y+22}" text-anchor="middle" style="font-size:9.5px">${st.n}</text>`}});
+  if(I.pending){const pot=I.base*(+I.pending.odds||1),xx=pos(pot);o+=`<circle cx="${xx.toFixed(1)}" cy="${y}" r="7" fill="none" stroke="var(--pend)" stroke-width="2" stroke-dasharray="3 3"/>`;if(!mini)o+=`<text x="${xx.toFixed(1)}" y="${y-14}" text-anchor="middle" style="fill:var(--pend)">si entra: ${esc(eur(pot))}</text>`}
+  if(I.state!=="lost"){o+=`<circle cx="${px.toFixed(1)}" cy="${y}" r="${mini?9:15}" fill="var(--accent)" opacity=".2"/><circle cx="${px.toFixed(1)}" cy="${y}" r="${mini?5.5:9}" fill="var(--accent)" stroke="#fff" stroke-width="2.5"/>`;
+    if(!mini){const bw=nr?76:84,bx=Math.max(x0,Math.min(x1-bw,px-bw/2));o+=`<rect x="${bx.toFixed(1)}" y="${y-64}" width="${bw}" height="24" rx="8" fill="var(--accent)"/><text x="${(bx+bw/2).toFixed(1)}" y="${y-47.5}" text-anchor="middle" style="fill:#fff;font:600 12px var(--f-mono)">${esc(eur(I.bank))}</text>`}}
+  return o+"</svg>"}
+
+const MEDALS=I=>[...[2,5,10,20].filter(m=>I.s*m<I.g*.97).map(m=>[I.s*m,"×"+m]),[I.g,"Meta"]].map(([v,l])=>`<span class="medal${I.best>=v-1e-9?" on":""}" title="${esc("Llegar a "+eur(v))}">${I.best>=v-1e-9?"★":"☆"} ${l}</span>`).join("");
+function confettiHTML(){return `<div class="confetti" aria-hidden="true">${Array.from({length:30},(_,i)=>`<i style="left:${(i*37)%100}%;background:${["#2F5BEA","#34D399","#FBBF24","#FB7185","#8FADFF"][i%5]};animation-delay:${(i%7)*.25}s;animation-duration:${2.4+(i%5)*.3}s"></i>`).join("")}</div>`}
+
+/* ---------- Pantalla ---------- */
+function renderReto(){
+  if(S.db&&!S.ready.bets)return skeleton();
+  const cs=retoList();
+  if(!cs.length)return `<section class="card rt-empty"><div class="rt-empty-in">
+    <span class="eyebrow">Reto</span><h2>De 5 € a 200 €, paso a paso</h2>
+    <p class="muted">Un juego con reglas claras: 1 o 2 selecciones por paso, cuotas bajas (1,20-1,35) y todo el saldo en cada paso. Aquí quedan apuntados todos los pasos, el saldo y tus intentos.</p>
+    <div class="rt-facts"><div><b>~16</b><span>aciertos seguidos con 1 selección por paso</span></div><div><b>~1 %</b><span>probabilidad real de completarlo</span></div><div><b>5 €</b><span>es todo lo que pones tú en cada intento</span></div></div>
+    <button class="btn primary" type="button" data-reto="new">${IC.plus}Crear mi reto</button></div></section>`;
+  const cur=cs[cs.length-1],I=chInfo(cur),grp=cs.filter(x=>(x.group||x.id)===(cur.group||cur.id)),used=grp.length,budget=+cur.budget||3;
+  const st=I.state,conf=S.retoConfirm;
+  const hero=`<section class="card rt-hero${st==="won"?" win":""}">${st==="won"?confettiHTML():""}
+    <div class="rt-top"><div><span class="eyebrow">Intento ${cur.attemptNo||1} de ${budget} · ${esc(cur.name||"Reto")}</span>
+      <div class="rt-bank ${st==="lost"?"neg":st==="won"?"pos":""}">${eur(I.bank)}</div>
+      <div class="rt-sub">${st==="won"?"¡Meta conseguida! Has llegado a "+eur(I.g)+".":st==="lost"?"Intento terminado en el paso "+I.steps.length+". Perdiste "+eur(I.steps[I.steps.length-1].before)+".":st==="stopped"?"Te retiraste con "+eur(I.bank)+".":"Te falta ×"+(I.g/Math.max(I.bank,.01)).toFixed(1).replace(".",",")+" para los "+eur(I.g)+" · unos "+I.k+" pasos a cuota media "+odd(I.stepOdds)}</div></div>
+      <div class="rt-top-r"><button class="btn sm" type="button" data-reto="edit">Reglas</button></div></div>
+    <div class="rt-lad">${ladderSVG(I)}</div><div class="medals">${MEDALS(I)}</div></section>`;
+  const kpis=`<section class="kpis k4">
+    <div class="card kpi"><span class="lbl">Paso</span><span class="val">${st==="active"?I.curN:I.steps.length}</span><span class="foot">${I.steps.filter(x=>x.res==="won").length} aciertos · ${st==="active"?"~"+I.k+" por delante":"intento cerrado"}</span></div>
+    <div class="card kpi"><span class="lbl">Racha</span><span class="val ${I.run?"pos":""}">${I.run}</span><span class="foot">mejor racha: ${I.bestRun}</span></div>
+    <div class="card kpi"><span class="lbl">Prob. de llegar</span><span class="val">${I.prob==null?"–":retoPct(I.prob)}</span><span class="foot">estimada desde aquí (margen ${Math.round((1-HOUSE)*100)} %)</span></div>
+    <div class="card kpi"><span class="lbl">Mejor saldo</span><span class="val">${eur(I.best)}</span><span class="foot">de este intento</span></div></section>`;
+  /* siguiente paso */
+  let next="";
+  if(st==="active"&&I.pending){const b=I.pending;
+    next=`<section class="card rt-next"><div class="card-h"><h2>Paso ${I.curN} en juego</h2><span class="aside">${eur(I.base)} en el aire</span></div><div class="card-b">
+      <ul class="rt-sels">${(b.selections||[]).map(x=>`<li><span>${esc(x.event)}<small>${esc(x.pick||"")}</small></span><b>@${odd(x.odds)}</b></li>`).join("")}</ul>
+      <p class="rt-pot">Cuota ${odd(b.odds)} · si entra pasas a <b class="pos">${eur(winAmt(b))}</b>. Si falla, el intento termina.</p>
+      <div class="rt-btns"><button class="btn primary" type="button" data-open="${esc(b.id)}">Abrir boleto y marcar resultado</button></div>
+      <p class="hint">Cuando marques las selecciones o el boleto como ganado o perdido, el reto avanza solo.</p></div></section>`}
+  else if(st==="active"){const lg=I.lg;
+    next=`<section class="card rt-next"><div class="card-h"><h2>Paso ${I.curN}</h2><span class="aside">todo el saldo</span></div><div class="card-b">
+      <p class="rt-rule">Apuesta <b>${eur(I.bank)}</b> a ${lg===1?"una selección":"hasta "+lg+" selecciones"} con cuota ${odd(+cur.oddsMin||1.2)}–${odd(+cur.oddsMax||1.35)} cada una.</p>
+      <div class="rt-calc" id="rt-calc" data-bank="${I.bank}" data-min="${+cur.oddsMin||1.2}" data-max="${+cur.oddsMax||1.35}" data-legs="${lg}">
+        ${Array.from({length:lg},(_,i)=>`<label class="field"><span>Cuota selección ${i+1}</span><input inputmode="decimal" placeholder="${odd(I.mid)}" aria-label="Cuota de la selección ${i+1}"></label>`).join("")}</div>
+      <div class="rt-out" id="rt-out"><span class="muted">Escribe las cuotas para ver cuánto cobrarías.</span></div>
+      <div class="rt-btns"><button class="btn primary" type="button" data-reto="step">${IC.plus}Registrar paso ${I.curN}</button>${I.steps.length&&I.bank>I.s?(conf==="stop"?`<span class="inline"><span>¿Retirarte con ${eur(I.bank)}?</span><button class="btn sm danger" type="button" data-reto="stop-yes">Sí, retirarme</button><button class="btn sm" type="button" data-reto="cancel">No</button></span>`:`<button class="btn" type="button" data-reto="stop">Retirarme con ${eur(I.bank)}</button>`):""}</div></div></section>`}
+  else{const over=used>=budget;
+    const msg=st==="won"?"¡Lo has conseguido! Guárdalo, celébralo y decide si repites.":st==="lost"?"Pasa: es lo normal en este reto. Lo que cuenta es no perseguir la pérdida.":"Cerraste el intento con ganancias.";
+    next=`<section class="card rt-next"><div class="card-h"><h2>${st==="won"?"Reto completado":st==="lost"?"Intento terminado":"Intento cerrado"}</h2></div><div class="card-b"><p class="rt-rule">${msg}</p>
+      ${conf==="over"?`<div class="callout"><span class="big">!</span><p>Ya has usado <b>${used} de ${budget}</b> intentos de tu presupuesto (${eur(used*I.s)} de tu bolsillo). ¿Seguro que quieres uno más?</p></div><div class="rt-btns"><button class="btn primary" type="button" data-reto="attempt">Sí, nuevo intento</button><button class="btn" type="button" data-reto="cancel">Mejor no</button></div>`
+      :`<div class="rt-btns"><button class="btn primary" type="button" data-reto="attempt">${IC.plus}Nuevo intento${over?" (presupuesto agotado)":""}</button></div>`}</div></section>`}
+  /* mapa de ruta */
+  const chips=[];for(let i=1;i<=Math.max(I.k0,I.steps.length);i++){const s=I.steps[i-1];
+    if(s){chips.push(`<span class="rt-chip ${s.res==="won"?"done":s.res==="lost"?"bad":s.res==="void"?"done":"now"}"><i>${i}</i>${s.after==null?"en juego":eur(s.after)}</span>`)}
+    else{const j=i-I.curN+1,v=I.base*Math.pow(I.stepOdds,Math.max(1,j));chips.push(`<span class="rt-chip ${i===I.curN&&st==="active"?"now":""}"><i>${i}</i>${v>=I.g?"META":eur(v)}</span>`);if(v>=I.g)break}}
+  const map=`<section class="card"><div class="card-h"><h2>Mapa de ruta</h2><span class="aside">${esc(odd(I.mid))} de media × ${I.lg} → ×${odd(I.stepOdds)} por paso</span></div><div class="card-b"><div class="rt-path">${chips.join("")}</div>
+    <p class="hint">Es el camino si todo entra a cuota media. Cada paso lo juegas con todo el saldo; con ${I.lg===1?"1 selección":I.lg+" selecciones"} por paso necesitas unos ${I.k0} pasos desde ${eur(I.s)}.</p></div></section>`;
+  /* historial */
+  const tl=I.steps.length?`<ul class="rt-timeline">${I.steps.map(s=>{const b=s.bet,sel=(b.selections||[]).map(x=>esc(x.event)+" · "+esc(x.pick||"")+" @"+odd(x.odds)).join("<br>");
+    return `<li><button class="rt-step" type="button" data-open="${esc(b.id)}"><span class="rt-node ${s.res}">${s.res==="won"?"✓":s.res==="lost"?"✕":s.n}</span><span class="rt-body"><b>Paso ${s.n} · cuota ${odd(b.odds)}</b><small>${sel||"Sin selecciones"}</small><small>${esc(fdate(b.date))} · ${eur(s.before)} → ${s.after==null?"en juego":eur(s.after)}</small></span><span class="st ${esc(s.res)}">${esc(STATUS[s.res]||s.res)}</span></button></li>`}).join("")}</ul>`
+    :'<p class="hint">Aún no hay pasos. Registra el primero y aparecerá aquí.</p>';
+  const hist=`<section class="card"><div class="card-h"><h2>Historial de pasos</h2><span class="aside">${I.steps.length} ${I.steps.length===1?"paso":"pasos"}</span></div><div class="card-b">${tl}</div></section>`;
+  /* intentos */
+  const rows=grp.map(c=>{const J=chInfo(c);return `<tr><td>${c.attemptNo||1}</td><td>${esc(fdate(new Date(c.created||Date.now()).toISOString().slice(0,10)))}</td><td><span class="st ${J.state==="won"?"won":J.state==="lost"?"lost":J.state==="stopped"?"cashout":"pending"}">${J.state==="won"?"Completado":J.state==="lost"?"Perdido":J.state==="stopped"?"Retirado":"En curso"}</span></td><td class="r">${J.steps.length}</td><td class="r">${eur(J.best)}</td></tr>`}).join("");
+  const att=`<section class="card"><div class="card-h"><h2>Tus intentos</h2><span class="aside">${used} de ${budget} usados</span></div><div class="card-b">
+    <div class="facts"><div class="fact"><div class="k">De tu bolsillo</div><div class="v">${eur(used*I.s)}</div><div class="s">${used} × ${eur(I.s)}</div></div><div class="fact"><div class="k">Completados</div><div class="v ${grp.some(c=>chInfo(c).state==="won")?"pos":""}">${grp.filter(c=>chInfo(c).state==="won").length}</div><div class="s">de ${used} ${used===1?"intento":"intentos"}</div></div></div>
+    <div class="tablebox"><table><thead><tr><th>Nº</th><th>Inicio</th><th>Resultado</th><th class="r">Pasos</th><th class="r">Mejor saldo</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="hint">Fija tu presupuesto de intentos antes de empezar y no lo ampliéis a mitad. Con ~${retoPct(I.pStep===0?0:Math.pow(I.pStep,I.k0))} de probabilidad por intento, lo normal es no llegar.</p></div></section>`;
+  return `${hero}${kpis}<div class="rt-grid"><div class="rt-col">${next}${map}</div><div class="rt-col">${hist}${att}</div></div>`}
+
+function retoMini(){const cs=retoList();
+  if(!cs.length)return `<section class="card rt-mini"><div class="rt-mini-in"><div><b>Reto de 5 € a 200 €</b><p class="hint">Una escalera con reglas claras: 1-2 partidos por paso, cuotas bajas y un presupuesto de intentos.</p></div><button class="btn primary" type="button" data-reto="new">Crear mi reto</button></div></section>`;
+  const cur=cs[cs.length-1],I=chInfo(cur);
+  return `<section class="card rt-mini" data-view="reto" role="button" tabindex="0" aria-label="Abrir el reto"><div class="rt-mini-in"><div><span class="lbl">Reto ${eur(I.s)} → ${eur(I.g)} · intento ${cur.attemptNo||1}</span><div class="rt-mini-bank">${eur(I.bank)}</div><p class="hint">${I.state==="active"?(I.pending?"Paso "+I.curN+" en juego":"Siguiente: paso "+I.curN):I.state==="won"?"¡Completado!":I.state==="lost"?"Intento terminado":"Retirado"}</p></div><div class="rt-mini-lad">${ladderSVG(I,true)}</div></div></section>`}
+
+/* ---------- Acciones ---------- */
+function retoStep(I){
+  const c=I.c;openBetForm({date:today(),book:S.settings.defaultBook||S.bets[0]?.book||"Winamax",origin:"mine",type:I.lg>1?"Combinada":"Simple",status:"pending",stake:+I.bank.toFixed(2),odds:"",tags:["reto"],challengeId:c.id,stepN:I.curN,title:"Reto · paso "+I.curN,selections:Array.from({length:I.lg},()=>({}))})}
+async function newRetoAttempt(cur){
+  const grp=retoList().filter(x=>(x.group||x.id)===(cur.group||cur.id)),n=Math.max(0,...grp.map(x=>x.attemptNo||1))+1;
+  const doc={id:newId("c"),name:cur.name,start:cur.start,goal:cur.goal,oddsMin:cur.oddsMin,oddsMax:cur.oddsMax,maxLegs:cur.maxLegs,budget:cur.budget,group:cur.group||cur.id,attemptNo:n,created:Date.now(),status:"active"};
+  if(await put("challenges","challenges",doc))toast("Intento "+n+" empezado")}
+async function retoAction(a){
+  const cs=retoList(),cur=cs[cs.length-1],I=cur&&chInfo(cur);
+  if(a==="new"){openRetoForm();return}
+  if(!cur)return;
+  if(a==="edit"){openRetoForm(cur);return}
+  if(a==="step"){if(I.pending){toast("Ya tienes un paso en juego",true);return}retoStep(I);return}
+  if(a==="stop"){S.retoConfirm="stop";render();return}
+  if(a==="cancel"){S.retoConfirm=null;render();return}
+  if(a==="stop-yes"){S.retoConfirm=null;if(await put("challenges","challenges",{...cur,status:"stopped",finalBank:+I.bank.toFixed(2),stoppedAt:today()}))toast("Te has retirado con "+eur(I.bank));return}
+  if(a==="attempt"){const used=cs.filter(x=>(x.group||x.id)===(cur.group||cur.id)).length;
+    if(used>=(+cur.budget||3)&&S.retoConfirm!=="over"){S.retoConfirm="over";render();return}
+    S.retoConfirm=null;await newRetoAttempt(cur);return}}
+function openRetoForm(c){const ed=!!c;c=c||{name:"Reto 5 → 200",start:5,goal:200,oddsMin:1.2,oddsMax:1.35,maxLegs:2,budget:3};
+  openOverlay(`<form class="sheet" id="rt-form" novalidate style="width:min(560px,100%)"><div class="sheet-h"><h2>${ed?"Reglas del reto":"Crear mi reto"}</h2><button class="btn icon" type="button" id="x" aria-label="Cerrar">${IC.x}</button></div>
+    <div class="sheet-b"><div class="field"><label for="rt-name">Nombre</label><input id="rt-name" value="${esc(c.name||"")}"></div>
+      <div class="fields"><div class="field"><label for="rt-start">Empiezas con</label><div class="money"><input id="rt-start" inputmode="decimal" value="${esc(dec(c.start))}"></div></div>
+        <div class="field"><label for="rt-goal">Meta</label><div class="money"><input id="rt-goal" inputmode="decimal" value="${esc(dec(c.goal))}"></div></div>
+        <div class="field"><label for="rt-min">Cuota mínima por selección</label><input id="rt-min" inputmode="decimal" value="${esc(dec(c.oddsMin))}"></div>
+        <div class="field"><label for="rt-max">Cuota máxima por selección</label><input id="rt-max" inputmode="decimal" value="${esc(dec(c.oddsMax))}"></div></div>
+      <div class="field"><label>Selecciones por paso</label>${segf("rt-legs",[["1","1 selección"],["2","Hasta 2"],["3","Hasta 3"]],String(c.maxLegs||2))}</div>
+      <div class="field"><label for="rt-budget">Presupuesto: intentos que te permites</label><input id="rt-budget" inputmode="numeric" value="${esc(c.budget||3)}"></div>
+      <p class="hint" id="rt-prev"></p></div>
+    <div class="summary"><div class="sum"></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="err" id="rt-err" role="alert"></span>${ed?'<button class="btn danger" type="button" id="rt-del">Borrar intento</button>':""}<button class="btn" type="button" id="cancel">Cancelar</button><button class="btn primary" type="submit">${ed?"Guardar":"Empezar reto"}</button></div></div></form>`);
+  bindSeg("rt-legs");$("cancel").onclick=$("x").onclick=closeOverlay;
+  const prev=()=>{const s=num($("rt-start").value),g=num($("rt-goal").value),mn=num($("rt-min").value),mx=num($("rt-max").value),lg=+segVal("rt-legs");
+    if(!(s>0&&g>s&&mn>1&&mx>=mn)){$("rt-prev").textContent="";return}
+    const mid=(mn+mx)/2,so=Math.pow(mid,lg),k=Math.ceil(Math.log(g/s)/Math.log(so)-1e-9),p=Math.pow(HOUSE/mid,lg*k);
+    $("rt-prev").textContent="A cuota media "+odd(mid)+" necesitas unos "+k+" pasos seguidos. Probabilidad estimada de completarlo: "+retoPct(p)+"."};
+  $("rt-form").addEventListener("input",prev);$("rt-legs").addEventListener("click",prev);prev();
+  if($("rt-del"))$("rt-del").onclick=async()=>{const b=$("rt-del");if(!b.dataset.sure){b.dataset.sure="1";b.textContent="¿Seguro? Pulsa otra vez";return}
+    closeOverlay();await del("challenges","challenges",c.id);toast("Intento borrado (sus boletos siguen en Apuestas)")};
+  $("rt-form").onsubmit=async e=>{e.preventDefault();const s=num($("rt-start").value),g=num($("rt-goal").value),mn=num($("rt-min").value),mx=num($("rt-max").value),bu=Math.round(num($("rt-budget").value));
+    if(!(s>0)){$("rt-err").textContent="Falta con cuánto empiezas.";return}
+    if(!(g>s)){$("rt-err").textContent="La meta tiene que ser mayor que el inicio.";return}
+    if(!(mn>1&&mx>=mn)){$("rt-err").textContent="Revisa las cuotas mínima y máxima.";return}
+    if(!(bu>=1)){$("rt-err").textContent="Pon al menos 1 intento.";return}
+    const f={name:$("rt-name").value.trim()||"Reto",start:s,goal:g,oddsMin:mn,oddsMax:mx,maxLegs:+segVal("rt-legs"),budget:bu};
+    const doc=ed?{...c,...f}:{id:newId("c"),...f,attemptNo:1,created:Date.now(),status:"active"};if(!ed)doc.group=doc.id;
+    closeOverlay();if(await put("challenges","challenges",doc)){toast(ed?"Reto actualizado":"Reto creado: ¡a por el paso 1!");S.view="reto";render();window.scrollTo({top:0})}}}
+function retoCalc(){const box=$("rt-calc");if(!box)return;const bank=+box.dataset.bank,mn=+box.dataset.min,mx=+box.dataset.max,lg=+box.dataset.legs,out=$("rt-out");
+  const v=[...box.querySelectorAll("input")].map(i=>num(i.value)).filter(x=>x);
+  if(!v.length){out.innerHTML='<span class="muted">Escribe las cuotas para ver cuánto cobrarías.</span>';return}
+  const tot=v.reduce((a,x)=>a*x,1),pay=bank*tot,bad=v.filter(x=>x<mn-.005||x>mx+.005);
+  out.innerHTML=`<b>Cuota total ${odd(tot)}</b> · cobrarías <b class="pos">${eur(pay)}</b> (${sgn(pay-bank)})`+(bad.length?` <span class="err">· ${bad.length===1?"una cuota queda":"varias cuotas quedan"} fuera de ${odd(mn)}–${odd(mx)}</span>`:' <span class="pos">· dentro de las reglas</span>')}
+document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#rt-calc"))retoCalc()});
 function drawerHTML(b){const sels=b.selections||[],r=ret(b),p=profitOf(b),conf=S.confirm===b.id;
   return `<div class="scrim" data-close></div><aside class="drawer${S.anim?" anim":""}" role="dialog" aria-modal="true" aria-label="Detalle del boleto">
     <div class="dr-h"><span class="t">Boleto</span><div style="display:flex;gap:6px"><button class="btn sm icon" type="button" data-d="share" title="Compartir como imagen" aria-label="Compartir como imagen">${IC.share}</button><button class="btn sm icon" type="button" data-d="dup" title="Duplicar" aria-label="Duplicar">${IC.copy}</button><button class="btn sm icon" type="button" data-d="edit" title="Editar" aria-label="Editar">${IC.edit}</button><button class="btn sm icon" type="button" data-close aria-label="Cerrar">${IC.x}</button></div></div>
@@ -1350,7 +1587,7 @@ function drawerHTML(b){const sels=b.selections||[],r=ret(b),p=profitOf(b),conf=S
           <div class="sx-brand">${bk(b.book)}<b>${esc(b.book)}</b><span class="sx-no">Nº ${esc(String(b.id||"").slice(-8).toUpperCase())}</span></div>
           <span class="sx-stamp ${esc(b.status)}">${STATUS[b.status]}</span>
           <div class="sx-title">${esc(b.title||(sels[0]?sels[0].event:"Apuesta"))}</div>${b.oddsEstimated?'<span class="tagw" style="width:max-content">Cuota estimada · confírmala con el boleto en Editar</span>':""}
-          <div class="tk-meta"><span>${esc(dayLabel(b.date))}</span><span class="chip">${esc(b.type||"Simple")}${sels.length>1?" · "+sels.length+" sel.":""}</span><span class="chip${b.origin==="claude"?" c":""}">${b.origin==="claude"?"Claude":"Mía"}</span>${b.freebet?'<span class="chip">Apuesta gratis</span>':""}${(b.tags||[]).map(t=>`<span class="chip">#${esc(t)}</span>`).join("")}</div></div>
+          <div class="tk-meta"><span>${esc(dayLabel(b.date))}</span><span class="chip">${esc(b.type||"Simple")}${sels.length>1?" · "+sels.length+" sel.":""}</span><span class="chip${b.origin==="claude"?" c":""}">${b.origin==="claude"?"Claude":"Mía"}</span>${b.challengeId?`<span class="chip c">Reto · paso ${esc(b.stepN||"?")}</span>`:""}${b.freebet?'<span class="chip">Apuesta gratis</span>':""}${(b.tags||[]).map(t=>`<span class="chip">#${esc(t)}</span>`).join("")}</div></div>
         <div class="sx-perf"></div>
         ${sels.length?`<ul class="sels">${sels.map((x,i)=>`<li class="${esc(x.result||"")}"><div><div class="e">${esc(x.event)}</div><div class="m">${x.sport?`<span class="sp">${esc(x.sport)}</span>`:""}${esc([x.competition,x.pick].filter(Boolean).join(" · "))}</div></div><span class="o">${odd(x.odds)}</span>
           <div class="rset" role="group" aria-label="Resultado de la selección"><button class="w" type="button" data-sel="${i}" data-v="won" aria-pressed="${x.result==="won"}">✓ Acertada</button><button class="l" type="button" data-sel="${i}" data-v="lost" aria-pressed="${x.result==="lost"}">✕ Fallada</button><button class="v" type="button" data-sel="${i}" data-v="void" aria-pressed="${x.result==="void"}">Nula</button><label class="cl">Cierre <input data-close-i="${i}" inputmode="decimal" value="${esc(dec(x.close))}" placeholder="–" aria-label="Cuota de cierre"></label>${+x.close&&+x.odds?`<span class="clv ${+x.odds>+x.close?"up":+x.odds<+x.close?"down":""}" title="Valor frente al cierre">CLV ${pct((x.odds/x.close-1)*100)}</span>`:""}</div></li>`).join("")}</ul>`:""}
@@ -1375,16 +1612,16 @@ function closeDrawer(){S.drawer=null;S.confirm=null;S.cashout=false;renderDrawer
 /* ---------- Render ---------- */
 function renderNav(){
   const pend=S.bets.filter(b=>b.status==="pending").length,cur=v=>S.view===v?' aria-current="page"':"";
-  $("nav").innerHTML='<span class="nav-t">General</span>'+[["panel","Panel"],["informe","Informe"],["apuestas","Apuestas"],["analisis","Análisis"],["caja","Caja"]].map(([v,l])=>`<button type="button" data-view="${v}"${cur(v)}>${IC[v]}${l}${v==="apuestas"?(pend?`<span class="badge live" title="En juego">${pend}</span>`:`<span class="badge">${S.bets.length}</span>`):""}</button>`).join("");
+  $("nav").innerHTML='<span class="nav-t">General</span>'+[["panel","Panel"],["informe","Informe"],["apuestas","Apuestas"],["reto","Reto"],["analisis","Análisis"],["caja","Caja"]].map(([v,l])=>`<button type="button" data-view="${v}"${cur(v)}>${IC[v]}${l}${v==="apuestas"?(pend?`<span class="badge live" title="En juego">${pend}</span>`:`<span class="badge">${S.bets.length}</span>`):""}</button>`).join("");
   $("tabbar").innerHTML=`<button type="button" data-view="panel"${cur("panel")}>${IC.panel}Panel</button><button type="button" data-view="apuestas"${cur("apuestas")}>${IC.apuestas}Apuestas</button><button type="button" class="plus" data-new aria-label="Nueva apuesta">${IC.plus}</button><button type="button" data-view="informe"${cur("informe")}>${IC.informe}Informe</button><button type="button" data-view="analisis"${cur("analisis")}>${IC.analisis}Análisis</button><button type="button" data-view="caja"${cur("caja")}>${IC.caja}Caja</button>`}
 function render(){
-  renderNav();renderSideLimit();renderSideAuto();
+  renderNav();renderSideLimit();renderSideAuto();document.body.dataset.page=S.view;
   $("v-title").textContent=VIEWS[S.view][0];
   const pend=S.bets.filter(b=>b.status==="pending");
-  $("v-sub").textContent=S.view==="panel"&&pend.length?pend.length+(pend.length===1?" boleto en juego":" boletos en juego")+" · "+eur(pend.reduce((a,b)=>a+(+b.stake||0),0))+" arriesgados":S.period!=="all"&&S.view!=="caja"?VIEWS[S.view][1]+" · "+({"7":"últimos 7 días","30":"últimos 30 días",month:"este mes",year:"este año"})[S.period]:VIEWS[S.view][1];
+  $("v-sub").textContent=S.view==="reto"?retoSub():S.view==="panel"&&pend.length?pend.length+(pend.length===1?" boleto en juego":" boletos en juego")+" · "+eur(pend.reduce((a,b)=>a+(+b.stake||0),0))+" arriesgados":S.period!=="all"&&S.view!=="caja"?VIEWS[S.view][1]+" · "+({"7":"últimos 7 días","30":"últimos 30 días",month:"este mes",year:"este año"})[S.period]:VIEWS[S.view][1];
   $("period").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===S.period)));
   for(const k in CH)delete CH[k];
-  $("view").innerHTML=(S.noDb?`<div class="banner">${esc(S.noDb)}</div>`:"")+({panel:renderPanel,informe:renderInforme,apuestas:renderApuestas,analisis:renderAnalisis,caja:renderCaja})[S.view]();
+  $("view").innerHTML=(S.noDb?`<div class="banner">${esc(S.noDb)}</div>`:"")+({panel:renderPanel,informe:renderInforme,apuestas:renderApuestas,analisis:renderAnalisis,caja:renderCaja,reto:renderReto})[S.view]();
   bindCharts();
   if(S.drawer)renderDrawer();
 }
@@ -1427,6 +1664,7 @@ document.addEventListener("click",async e=>{
   if(t.closest("[data-settings]"))return openSettings();
   if(t.closest("[data-ai]"))return askAI();
   if(t.closest("[data-suggest]"))return askSuggest();
+  const rt=t.closest("[data-reto]");if(rt)return retoAction(rt.dataset.reto);
   const us=t.closest("[data-usesug]");if(us)return useSuggestion(+us.dataset.usesug);
   if(t.closest("[data-reset]")){S.status=S.book=S.origin=S.tag="all";S.sort="recent";$("q").value="";render();return}
   const o=t.closest("[data-open]");if(o)return openDrawer(o.dataset.open);
@@ -1460,7 +1698,7 @@ $("top-new").addEventListener("click",()=>openBetForm());$("side-theme").addEven
 $("side-move").addEventListener("click",()=>openMoveForm());$("side-export").addEventListener("click",exportCSV);$("side-settings").addEventListener("click",openSettings);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("overlay").hidden)closeOverlay();else if(S.drawer)closeDrawer();return}
   const tag=(document.activeElement&&document.activeElement.tagName)||"";if(/INPUT|TEXTAREA|SELECT/.test(tag)||e.metaKey||e.ctrlKey||e.altKey||!$("overlay").hidden)return;
-  if(e.key==="n"||e.key==="N"){e.preventDefault();openBetForm()}else if(e.key==="/"){e.preventDefault();$("q").focus()}else if(/^[1-5]$/.test(e.key)&&!S.drawer){S.view=["panel","informe","apuestas","analisis","caja"][+e.key-1];render()}});
+  if(e.key==="n"||e.key==="N"){e.preventDefault();openBetForm()}else if(e.key==="/"){e.preventDefault();$("q").focus()}else if(/^[1-6]$/.test(e.key)&&!S.drawer){S.view=["panel","informe","apuestas","reto","analisis","caja"][+e.key-1];render()}});
 
 /* ---------- Formularios ---------- */
 function closeOverlay(){const o=$("overlay");o.hidden=true;o.innerHTML="";document.body.style.overflow=S.drawer?"hidden":""}
@@ -1593,7 +1831,7 @@ async function readTicketOCR(file,progress){
     return out
   }finally{await worker.terminate()}}
 function openBetForm(b,isDup){
-  const isNew=!b;const editing=!!(b&&b.id);const def=S.settings.defaultBook||S.bets[0]?.book||"Winamax";
+  const isNew=!b||!!(b.challengeId&&!b.id);const editing=!!(b&&b.id);const def=S.settings.defaultBook||S.bets[0]?.book||"Winamax";
   b=b||{date:today(),book:def,origin:"mine",type:"Combinada",status:"pending",stake:S.settings.unit||"",odds:"",selections:[{},{}]};
   rowN=0;const comps=[...new Set(S.bets.flatMap(x=>(x.selections||[]).map(s=>s.competition)).filter(Boolean))];
   const evs=[...new Set(S.bets.flatMap(x=>(x.selections||[]).map(s=>s.event)).filter(Boolean))].slice(-120),pks=[...new Set(S.bets.flatMap(x=>(x.selections||[]).map(s=>s.pick)).filter(Boolean))].slice(-120);
@@ -1672,7 +1910,7 @@ Alanyaspor - Bingölspor | Gana Alanyaspor | 1,12"></textarea><div class="q-row"
     const out={...b,id:b.id||newId("b"),date:$("b-date").value||today(),book:$("b-book").value,origin:segVal("b-origin"),type:$("b-type").value,stake:st,odds:+o.toFixed(4),status,
       payout:status==="cashout"?num($("b-payout").value):null,title:$("b-title").value.trim(),selections:s,notes:$("b-notes").value.trim(),oddsEstimated:$("b-est").checked,boost:num($("b-boost").value)||null,freebet:$("b-free").checked,tags:[...new Set($("b-tags").value.split(",").map(t=>t.trim().toLowerCase()).filter(Boolean))],
       created:b.created||Date.now(),settled:status==="pending"?null:(b.settled||today())};
-    closeOverlay();if(await put("bets","bets",out)){toast(editing?"Cambios guardados":"Boleto guardado");if(!editing){S.view="apuestas";S.status="all";render();openDrawer(out.id)}}};
+    closeOverlay();if(await put("bets","bets",out)){const rc=out.challengeId&&S.challenges.find(x=>x.id===out.challengeId),warn=rc?retoRuleWarn(rc,out):"";toast((editing?"Cambios guardados":out.challengeId?"Paso registrado":"Boleto guardado")+(warn?" · "+warn:""),!!warn);if(!editing){if(out.challengeId){S.view="reto";render();window.scrollTo({top:0})}else{S.view="apuestas";S.status="all";render();openDrawer(out.id)}}}};
   setTimeout(()=>{const f=editing?$("b-stake"):isNew?$("q-paste"):$("selrows").querySelector("input");f&&f.focus()},30);
 }
 function openMoveForm(m){const editing=!!m;m=m||{date:today(),book:S.settings.defaultBook||S.bets[0]?.book||"Winamax",kind:"deposit",amount:"",note:""};
@@ -1720,6 +1958,7 @@ render();
   db.collection("moves").onSnapshot(s=>{S.moves=s.docs.map(d=>({id:d.id,...d.data()}));schedule()},onErr);
   db.doc("settings/main").onSnapshot(s=>{S.settings=s.exists?{...s.data()}:{};schedule()},onErr);
   db.doc("meta/autocheck").onSnapshot(s=>{S.meta=s.exists?{...s.data()}:{};schedule()},onErr);
+  db.collection("challenges").onSnapshot(s=>{S.challenges=s.docs.map(d=>({id:d.id,...d.data()}));schedule()},onErr);
 })();
 })();
 </script>
