@@ -791,7 +791,7 @@ const SCAN_PROMPT=`La imagen es una captura de un boleto de apuestas deportivas 
 {"book":"Winamax","date":"2026-10-27","stake":10,"odds":7.39,"boost_pct":16,"freebet":false,"selections":[{"event":"Roma – Cagliari","competition":"Serie A","sport":"Fútbol","pick":"Gana Roma","odds":1.25}]}
 Reglas: "book" es el nombre de la casa (Winamax, Sportium, Bet365, Codere, Bwin, Betfair, William Hill, Betway, Luckia, Marca Apuestas, Retabet u otra). "date" en formato AAAA-MM-DD. "stake" es el importe apostado y "odds" la cuota total SIN bonificaciones, ambos como números. "boost_pct" es el porcentaje de un potenciador o Combo Booster si aparece; si no, 0. "freebet" es true solo si es una apuesta gratis. En cada selección: "event" con los dos equipos separados por " – " y nombres normales (no en mayúsculas); "pick" el pronóstico en español breve (Gana Roma, Lazio o empate (X2), Más de 2,5 goles…); "odds" su cuota como número; "sport" uno de Fútbol, Baloncesto, Tenis u Otro; "competition" solo si aparece o es inequívoca por los equipos, si no cadena vacía. Si un dato no aparece, usa null.`;
 const STATUS={pending:"Pendiente",won:"Ganada",lost:"Perdida",void:"Nula",cashout:"Cash out"};
-const VIEWS={panel:["Panel","Resumen de tu actividad"],informe:["Informe","Tu resumen en gráficos"],apuestas:["Apuestas","Todos tus boletos"],analisis:["Análisis","Qué te funciona y qué no"],caja:["Caja","Depósitos, retiradas y saldo por casa"],reto:["Reto","De 5 € a 200 €, paso a paso"]};
+const VIEWS={panel:["Panel","Resumen de tu actividad"],informe:["Informe","Tu resumen en gráficos"],apuestas:["Apuestas","Todos tus boletos"],analisis:["Análisis","Qué te funciona y qué no"],caja:["Caja","Depósitos, retiradas y saldo por casa"],reto:["Reto","De 5 € a 200 €, paso a paso"],tipsters:["Tipsters","Estadísticas de cada tipster"]};
 const SVG=(d,extra="")=>`<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extra}>${d}</svg>`;
 const IC={panel:SVG('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>'),
   apuestas:SVG('<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 5v12" stroke-dasharray="2 2.2"/>'),
@@ -803,6 +803,7 @@ const IC={panel:SVG('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="1
   x:SVG('<path d="M6 6l12 12M18 6 6 18"/>'),
   edit:SVG('<path d="M4 20h4L19 9l-4-4L4 16z"/>'),
   copy:SVG('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+  tipsters:SVG('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>'),
   reto:SVG('<path d="M5 21V4"/><path d="M5 4h12l-2.5 4L17 12H5"/>'),
   tools:SVG('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'),
   sun:SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
@@ -1299,6 +1300,32 @@ function renderAnalisis(){
   </div>`}
 
 /* ---------- Caja ---------- */
+function tipsterCard(o,bets){
+  const st=stats(bets),sk=streaks(bets),k=o[0];
+  const head=`<div class="card-h"><div class="who"><span class="av m">${esc(o[2])}</span>${esc(o[1])}</div><span class="aside">${st.n} ${st.n===1?"boleto":"boletos"}</span></div>`;
+  if(!bets.length)return `<section class="card">${head}<div class="card-b"><p class="hint">Aún no has registrado apuestas de ${esc(o[1])} en este periodo.</p><button class="btn sm" type="button" data-newtip="${k}">Registrar apuesta</button></div></section>`;
+  const sp={};for(const b of bets)for(const x of (b.selections||[])){const n=x.sport||"Otro",e=sp[n]||(sp[n]={w:0,l:0,p:0});if(x.result==="won")e.w++;else if(x.result==="lost")e.l++;else e.p++}
+  const spRows=Object.entries(sp).sort((a,b)=>(b[1].w+b[1].l+b[1].p)-(a[1].w+a[1].l+a[1].p)).map(([n,e])=>`<div class="vsrow" style="grid-template-columns:minmax(0,1fr) auto"><div style="min-width:0"><div class="nm">${esc(n)}</div><div class="sub">${e.w} ${e.w===1?"ganada":"ganadas"} · ${e.l} ${e.l===1?"perdida":"perdidas"}${e.p?` · ${e.p} en juego`:""}</div></div><span class="pr" style="font-size:1.1rem">${(e.w+e.l)?pc0(e.w/(e.w+e.l)*100):"–"}</span></div>`).join("");
+  const last=bets.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).slice(0,6);
+  const streak=sk.cur?`${sk.cur} ${sk.curT==="won"?(sk.cur===1?"ganada":"ganadas"):(sk.cur===1?"perdida":"perdidas")} seguidas`:"–";
+  return `<section class="card">${head}<div class="card-b">
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+      ${[["Beneficio",`<span class="${cls(st.profit)}">${sgn(st.profit)}</span>`,eur(st.staked)+" apostados"],["Yield",`<span class="${cls(st.yld)}">${pct(st.yld)}</span>`,"sobre lo apostado"],["Acierto",pc0(st.hit),st.won+(st.won===1?" ganada · ":" ganadas · ")+st.lost+(st.lost===1?" perdida":" perdidas")],["En juego",eur(st.pendStake),st.pend+(st.pend===1?" boleto":" boletos")]].map(([l,v,f])=>`<div style="background:var(--card-2);border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;min-width:0"><div class="sub" style="font-size:.68rem;letter-spacing:.1em;text-transform:uppercase">${l}</div><div class="nm" style="font-family:var(--f-display);font-size:1.5rem;font-weight:700;line-height:1.2">${v}</div><div class="sub">${f}</div></div>`).join("")}
+    </div>
+    <div class="vsrow" style="grid-template-columns:repeat(3,minmax(0,1fr));text-align:center;gap:8px;border-bottom:0">
+      <div><div class="sub">Cuota media</div><div class="nm">${st.avgOdds?odd(st.avgOdds):"–"}</div></div>
+      <div><div class="sub">Selecciones</div><div class="nm">${pc0(st.selHit)}</div></div>
+      <div><div class="sub">Racha</div><div class="nm" style="font-size:.84rem">${streak}</div></div>
+    </div>
+    ${lineChart("tip-"+k,profitCurve(bets),{label:"Beneficio acumulado de "+o[1],endLab:st.closed+" cerradas",h:200,emptyT:"Aún sin apuestas cerradas",emptyS:"La curva aparece al cerrar el primer boleto."})}
+    <span class="sec-t">Por deporte</span><div style="gap:0">${spRows||'<p class="hint">Sin selecciones.</p>'}</div>
+    <span class="sec-t">Últimas apuestas</span><div class="list" style="margin:0 -18px -18px;border-top:1px solid var(--line-2);overflow:hidden;border-radius:0 0 14px 14px">${last.map(rowHTML).join("")}</div>
+  </div></section>`}
+function renderTipsters(){
+  if(S.db&&!S.ready.bets)return skeleton();
+  const all=periodBets(),tips=ORIGINS.filter(o=>o[0]==="elverde"||o[0]==="vicen");
+  if(!all.some(b=>oKey(b)==="elverde"||oKey(b)==="vicen"))return `<div class="empty">${IC.tipsters}<b>Aún no hay apuestas de tipsters</b>Al registrar un boleto, elige TipsElVerde o Vicen Analista en "Origen" y aquí verás las estadísticas de cada uno.<br><button class="btn primary" type="button" data-new style="margin-top:12px">Nueva apuesta</button></div>`;
+  return `<div class="grid g-2">${tips.map(o=>tipsterCard(o,all.filter(b=>oKey(b)===o[0]))).join("")}</div>`}
 function renderCaja(){
   const mv=periodMoves().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created||0)-(a.created||0)),cf=cashflow(mv),by={};
   for(const m of S.moves){const k=m.book||"–";by[k]=by[k]||{dep:0,wd:0,bon:0};const a=+m.amount||0;if(m.kind==="deposit")by[k].dep+=a;else if(m.kind==="withdrawal")by[k].wd+=a;else by[k].bon+=a}
@@ -1395,12 +1422,12 @@ async function shareTicket(b){
 function openTools(){const light=curTheme()==="light";
   const it=(k,ic,t,s)=>`<button class="tl-item" type="button" data-tool="${k}">${ic}<span>${t}${s?`<small>${s}</small>`:""}</span></button>`;
   openOverlay(`<div class="sheet toolsheet" role="dialog" aria-label="Herramientas"><div class="sheet-h"><h2>Herramientas</h2><button class="btn icon" type="button" id="x" aria-label="Cerrar">${IC.x}</button></div>
-    <div class="tl-list">${it("reto",IC.reto,"Reto 5 → 200","Escalera, pasos y estadísticas")}${it("new",IC.plus,"Nueva apuesta","Pega las selecciones o lee una captura")}${it("move",IC.caja,"Depósito o retirada","Apunta el dinero que entra y sale")}${it("export",IC.informe,"Exportar CSV","Para Power BI o Excel")}${it("settings",IC.tools,"Ajustes","Límite mensual, stake y casa habitual")}${it("theme",light?IC.moon:IC.sun,light?"Modo oscuro":"Modo claro","Cambia el aspecto de la app")}</div>
+    <div class="tl-list">${it("reto",IC.reto,"Reto 5 → 200","Escalera, pasos y estadísticas")}${it("tipsters",IC.tipsters,"Tipsters","Estadísticas de cada tipster")}${it("new",IC.plus,"Nueva apuesta","Pega las selecciones o lee una captura")}${it("move",IC.caja,"Depósito o retirada","Apunta el dinero que entra y sale")}${it("export",IC.informe,"Exportar CSV","Para Power BI o Excel")}${it("settings",IC.tools,"Ajustes","Límite mensual, stake y casa habitual")}${it("theme",light?IC.moon:IC.sun,light?"Modo oscuro":"Modo claro","Cambia el aspecto de la app")}</div>
     <div class="tl-info"><div class="side-card">${$("side-limit").innerHTML}</div><div class="auto">${$("side-auto").innerHTML}</div></div></div>`);
   $("x").onclick=closeOverlay}
 $("overlay").addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-tool]");if(!t)return;const a=t.dataset.tool;
   if(a==="theme"){toggleTheme();openTools();return}
-  closeOverlay();if(a==="reto"){S.view="reto";render();window.scrollTo({top:0})}else if(a==="new")openBetForm();else if(a==="move")openMoveForm();else if(a==="export")exportCSV();else if(a==="settings")openSettings()});
+  closeOverlay();if(a==="reto"||a==="tipsters"){S.view=a;render();window.scrollTo({top:0})}else if(a==="new")openBetForm();else if(a==="move")openMoveForm();else if(a==="export")exportCSV();else if(a==="settings")openSettings()});
 /* ---------- Reto: de 5 € a 200 € paso a paso ---------- */
 const HOUSE=.96; /* parte del dinero que devuelve la casa por apuesta (margen ~4 %) */
 const retoList=()=>S.challenges.slice().sort((a,b)=>(a.created||0)-(b.created||0));
@@ -1604,7 +1631,7 @@ function closeDrawer(){S.drawer=null;S.confirm=null;S.cashout=false;renderDrawer
 /* ---------- Render ---------- */
 function renderNav(){
   const pend=S.bets.filter(b=>b.status==="pending").length,cur=v=>S.view===v?' aria-current="page"':"";
-  $("nav").innerHTML='<span class="nav-t">General</span>'+[["panel","Panel"],["informe","Informe"],["apuestas","Apuestas"],["reto","Reto"],["analisis","Análisis"],["caja","Caja"]].map(([v,l])=>`<button type="button" data-view="${v}"${cur(v)}>${IC[v]}${l}${v==="apuestas"?(pend?`<span class="badge live" title="En juego">${pend}</span>`:`<span class="badge">${S.bets.length}</span>`):""}</button>`).join("");
+  $("nav").innerHTML='<span class="nav-t">General</span>'+[["panel","Panel"],["informe","Informe"],["apuestas","Apuestas"],["reto","Reto"],["analisis","Análisis"],["tipsters","Tipsters"],["caja","Caja"]].map(([v,l])=>`<button type="button" data-view="${v}"${cur(v)}>${IC[v]}${l}${v==="apuestas"?(pend?`<span class="badge live" title="En juego">${pend}</span>`:`<span class="badge">${S.bets.length}</span>`):""}</button>`).join("");
   $("tabbar").innerHTML=`<button type="button" data-view="panel"${cur("panel")}>${IC.panel}Panel</button><button type="button" data-view="apuestas"${cur("apuestas")}>${IC.apuestas}Apuestas</button><button type="button" class="plus" data-new aria-label="Nueva apuesta">${IC.plus}</button><button type="button" data-view="informe"${cur("informe")}>${IC.informe}Informe</button><button type="button" data-view="analisis"${cur("analisis")}>${IC.analisis}Análisis</button><button type="button" data-view="caja"${cur("caja")}>${IC.caja}Caja</button>`}
 function render(){
   renderNav();renderSideLimit();renderSideAuto();document.body.dataset.page=S.view;
@@ -1613,7 +1640,7 @@ function render(){
   $("v-sub").textContent=S.view==="reto"?retoSub():S.view==="panel"&&pend.length?pend.length+(pend.length===1?" boleto en juego":" boletos en juego")+" · "+eur(pend.reduce((a,b)=>a+(+b.stake||0),0))+" arriesgados":S.period!=="all"&&S.view!=="caja"?VIEWS[S.view][1]+" · "+({"7":"últimos 7 días","30":"últimos 30 días",month:"este mes",year:"este año"})[S.period]:VIEWS[S.view][1];
   $("period").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===S.period)));
   for(const k in CH)delete CH[k];
-  $("view").innerHTML=(S.noDb?`<div class="banner">${esc(S.noDb)}</div>`:"")+({panel:renderPanel,informe:renderInforme,apuestas:renderApuestas,analisis:renderAnalisis,caja:renderCaja,reto:renderReto})[S.view]();
+  $("view").innerHTML=(S.noDb?`<div class="banner">${esc(S.noDb)}</div>`:"")+({panel:renderPanel,informe:renderInforme,apuestas:renderApuestas,analisis:renderAnalisis,caja:renderCaja,reto:renderReto,tipsters:renderTipsters})[S.view]();
   bindCharts();
   if(S.drawer)renderDrawer();
 }
@@ -1658,6 +1685,7 @@ document.addEventListener("click",async e=>{
   if(t.closest("[data-suggest]"))return askSuggest();
   const rt=t.closest("[data-reto]");if(rt)return retoAction(rt.dataset.reto);
   const us=t.closest("[data-usesug]");if(us)return useSuggestion(+us.dataset.usesug);
+  if(t.closest("[data-newtip]")){openBetForm({date:today(),book:S.settings.defaultBook||S.bets[0]?.book||"Winamax",origin:t.closest("[data-newtip]").dataset.newtip,type:"Simple",status:"pending",stake:S.settings.unit||"",odds:"",selections:[{}]});return}
   if(t.closest("[data-reset]")){S.status=S.book=S.origin=S.tag="all";S.sort="recent";$("q").value="";render();return}
   const o=t.closest("[data-open]");if(o)return openDrawer(o.dataset.open);
   if(t.closest("[data-close]"))return closeDrawer();
@@ -1690,7 +1718,7 @@ $("top-new").addEventListener("click",()=>openBetForm());$("side-theme").addEven
 $("side-move").addEventListener("click",()=>openMoveForm());$("side-export").addEventListener("click",exportCSV);$("side-settings").addEventListener("click",openSettings);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("overlay").hidden)closeOverlay();else if(S.drawer)closeDrawer();return}
   const tag=(document.activeElement&&document.activeElement.tagName)||"";if(/INPUT|TEXTAREA|SELECT/.test(tag)||e.metaKey||e.ctrlKey||e.altKey||!$("overlay").hidden)return;
-  if(e.key==="n"||e.key==="N"){e.preventDefault();openBetForm()}else if(e.key==="/"){e.preventDefault();$("q").focus()}else if(/^[1-6]$/.test(e.key)&&!S.drawer){S.view=["panel","informe","apuestas","reto","analisis","caja"][+e.key-1];render()}});
+  if(e.key==="n"||e.key==="N"){e.preventDefault();openBetForm()}else if(e.key==="/"){e.preventDefault();$("q").focus()}else if(/^[1-7]$/.test(e.key)&&!S.drawer){S.view=["panel","informe","apuestas","reto","analisis","tipsters","caja"][+e.key-1];render()}});
 
 /* ---------- Formularios ---------- */
 function closeOverlay(){const o=$("overlay");o.hidden=true;o.innerHTML="";document.body.style.overflow=S.drawer?"hidden":""}
@@ -1860,7 +1888,7 @@ Alanyaspor - Bingölspor | Gana Alanyaspor | 1,12"></textarea><div class="q-row"
           <div class="field"><label for="b-date">Fecha</label><input type="date" id="b-date" value="${esc(b.date)}"></div>
           <div class="field"><label for="b-book">Casa</label><select id="b-book">${opts(BOOKS.includes(b.book)?BOOKS:[b.book,...BOOKS],b.book)}</select></div>
           <div class="field"><label for="b-type">Tipo</label><select id="b-type">${opts(["Simple","Combinada","Sistema","Crear apuesta"],b.type)}</select></div>
-          <div class="field"><label>Origen</label>${segf("b-origin",ORIGINS.map(o=>[o[0],o[1]]),oKey(b))}</div>
+          <div class="field"><label for="b-origin">Origen</label><select id="b-origin">${ORIGINS.map(o=>`<option value="${o[0]}"${o[0]===oKey(b)?" selected":""}>${esc(o[1])}</option>`).join("")}</select></div>
         </div>
         <div class="field"><label for="b-title">Nombre <span class="muted" style="font-weight:400">(opcional)</span></label><input id="b-title" value="${esc(b.title||"")}" placeholder="Combinada martes · copas y Euroliga"></div>
         <div class="field"><label for="b-tags">Etiquetas <span class="muted" style="font-weight:400">(separadas por comas)</span></label><input id="b-tags" value="${esc((b.tags||[]).join(", "))}" placeholder="copas, valor, corazonada"></div></div>
@@ -1902,7 +1930,7 @@ Alanyaspor - Bingölspor | Gana Alanyaspor | 1,12"></textarea><div class="q-row"
     if(k>=0&&k<inputs.length-1){inputs[k+1].focus();return}
     let nx=row.nextElementSibling;if(!nx){$("selrows").insertAdjacentHTML("beforeend",selRow({}));renum();nx=$("selrows").lastElementChild}
     nx.querySelector("input").focus()});
-  bindSeg("b-origin");bindSeg("b-status",v=>{$("payout-f").hidden=v!=="cashout"});
+  bindSeg("b-status",v=>{$("payout-f").hidden=v!=="cashout"});
   const si=$("scan-in");if(si)si.onchange=async()=>{const f=si.files&&si.files[0];si.value="";if(!f)return;const er=$("form-err");er.style.color="var(--muted)";er.textContent="Leyendo el boleto…";
     try{const useAI=!!(S.canImg&&S.sample);const d=useAI?await S.sample.json(SCAN_PROMPT,{images:[f]}):await readTicketOCR(f,p=>{er.textContent="Leyendo el boleto… "+p+"%"});
       if(!d||!Array.isArray(d.selections)||!d.selections.length)throw{code:"invalid_json"};
@@ -1919,7 +1947,7 @@ Alanyaspor - Bingölspor | Gana Alanyaspor | 1,12"></textarea><div class="q-row"
     if(!st||st<=0){$("form-err").textContent="Falta el stake.";$("b-stake").focus();return}
     if(!o||o<1){$("form-err").textContent="Falta la cuota total o la de cada selección.";$("b-odds").focus();return}
     const status=segVal("b-status");
-    const out={...b,id:b.id||newId("b"),date:$("b-date").value||today(),book:$("b-book").value,origin:segVal("b-origin"),type:$("b-type").value,stake:st,odds:+o.toFixed(4),status,
+    const out={...b,id:b.id||newId("b"),date:$("b-date").value||today(),book:$("b-book").value,origin:$("b-origin").value,type:$("b-type").value,stake:st,odds:+o.toFixed(4),status,
       payout:status==="cashout"?num($("b-payout").value):null,title:$("b-title").value.trim(),selections:s,notes:$("b-notes").value.trim(),oddsEstimated:$("b-est").checked,boost:num($("b-boost").value)||null,freebet:$("b-free").checked,tags:[...new Set($("b-tags").value.split(",").map(t=>t.trim().toLowerCase()).filter(Boolean))],
       created:b.created||Date.now(),settled:status==="pending"?null:(b.settled||today())};
     closeOverlay();if(await put("bets","bets",out)){const rc=out.challengeId&&S.challenges.find(x=>x.id===out.challengeId),warn=rc?retoRuleWarn(rc,out):"";toast((editing?"Cambios guardados":out.challengeId?"Paso registrado":"Boleto guardado")+(warn?" · "+warn:""),!!warn);if(!editing){if(out.challengeId){S.view="reto";render();window.scrollTo({top:0})}else{S.view="apuestas";S.status="all";render();openDrawer(out.id)}}}};
