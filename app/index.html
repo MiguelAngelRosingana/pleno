@@ -814,6 +814,9 @@ const IC={panel:SVG('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="1
   up:'<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 2l4 6H2z" fill="currentColor"/></svg>',
   down:'<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 10 2 4h8z" fill="currentColor"/></svg>'};
 
+const ORIGINS=[["mine","Mía","M"],["claude","Claude","C"],["elverde","TipsElVerde","V"],["vicen","Vicen Analista","VA"]];
+const oKey=b=>ORIGINS.some(o=>o[0]===(b&&b.origin))?b.origin:"mine";
+const oName=k=>(ORIGINS.find(o=>o[0]===k)||ORIGINS[0])[1];
 const S={bets:[],moves:[],settings:{},view:"panel",period:"all",status:"all",book:"all",origin:"all",sort:"recent",chartMode:"profit",kDim:"type",meta:{},tag:"all",challenges:[],
   db:null,dl:null,ready:{bets:false},drawer:null,confirm:null,cashout:false,noDb:null};
 const $=id=>document.getElementById(id);
@@ -1025,13 +1028,13 @@ function rowHTML(b){const sels=b.selections||[],r=ret(b),p=profitOf(b),w=sels.fi
   return `<button class="lrow" type="button" data-open="${esc(b.id)}">
     <span class="when"><span class="st ${esc(b.status)}">${STATUS[b.status]||esc(b.status)}</span><span class="muted" style="font-size:.76rem">${esc(fdate(b.date))}</span></span>
     <span class="what"><span class="t">${esc(b.title||(sels[0]?sels[0].event+" · "+(sels[0].pick||""):"Apuesta"))}</span>
-      <span class="m">${bk(b.book)}${esc(b.book)} · ${esc(b.type||"Simple")}${sels.length>1?" · "+sels.length+" sel.":""}${b.origin==="claude"?' <span class="tagc">Claude</span>':""}${b.boost?` <span class="tagc" style="color:var(--won);background:var(--won-soft)">+${esc(dec(b.boost))}%</span>`:""}${b.freebet?' <span class="tagw">gratis</span>':""}${(b.tags||[]).map(t=>` <span class="tagx">${esc(t)}</span>`).join("")}${b.oddsEstimated?' <span class="tagw">cuota por confirmar</span>':""}</span></span>
+      <span class="m">${bk(b.book)}${esc(b.book)} · ${esc(b.type||"Simple")}${sels.length>1?" · "+sels.length+" sel.":""}${oKey(b)!=="mine"?` <span class="tagc">${esc(oName(oKey(b)))}</span>`:""}${b.boost?` <span class="tagc" style="color:var(--won);background:var(--won-soft)">+${esc(dec(b.boost))}%</span>`:""}${b.freebet?' <span class="tagw">gratis</span>':""}${(b.tags||[]).map(t=>` <span class="tagx">${esc(t)}</span>`).join("")}${b.oddsEstimated?' <span class="tagw">cuota por confirmar</span>':""}</span></span>
     <span class="prog">${sels.length>1?`<span class="bars">${sels.map(x=>`<i class="${esc(x.result||"")}"></i>`).join("")}</span><small>${w}/${sels.length} acertadas${l?" · "+l+" falladas":""}</small>`:""}</span>
     <span class="c-stake mono">${eur(+b.stake)}</span>
     <span class="c-odds mono">@${odd(b.odds)}</span>
     <span class="res ${cls(p)}">${r==null?eur(winAmt(b)):sgn(p)}<small>${r==null?"posible cobro":b.status==="void"?"devuelto":b.status==="cashout"?"cash out":"resultado"}</small></span>
     <span class="chev">${IC.chev}</span></button>`}
-function listBets(){const bets=periodBets().filter(b=>(S.status==="all"||b.status===S.status)&&(S.book==="all"||b.book===S.book)&&(S.origin==="all"||(S.origin==="claude"?b.origin==="claude":b.origin!=="claude"))&&(S.tag==="all"||(b.tags||[]).includes(S.tag)));
+function listBets(){const bets=periodBets().filter(b=>(S.status==="all"||b.status===S.status)&&(S.book==="all"||b.book===S.book)&&(S.origin==="all"||oKey(b)===S.origin)&&(S.tag==="all"||(b.tags||[]).includes(S.tag)));
   const k={recent:(a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created||0)-(a.created||0),stake:(a,b)=>(+b.stake||0)-(+a.stake||0),odds:(a,b)=>(+b.odds||0)-(+a.odds||0),result:(a,b)=>(profitOf(b)??-1e9)-(profitOf(a)??-1e9)}[S.sort];
   return bets.sort(k)}
 const LHEAD='<div class="lhead"><span>Estado</span><span>Apuesta</span><span>Selecciones</span><span>Stake</span><span>Cuota</span><span class="r">Resultado</span><span></span></div>';
@@ -1050,7 +1053,7 @@ function renderApuestas(){
     <div class="stabs" id="stabs">${[["all","Todas"],["pending","En juego"],["won","Ganadas"],["lost","Perdidas"],["void","Nulas"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${S.status===v}">${l} <span>${cnt(v)}</span></button>`).join("")}</div>
     <div class="fsel">
       <select class="sel-in" id="f-book" aria-label="Casa"><option value="all">Todas las casas</option>${books.map(b=>`<option value="${esc(b)}"${S.book===b?" selected":""}>${esc(b)}</option>`).join("")}</select>
-      <select class="sel-in" id="f-origin" aria-label="Origen"><option value="all">Claude y mías</option><option value="claude"${S.origin==="claude"?" selected":""}>De Claude</option><option value="mine"${S.origin==="mine"?" selected":""}>Mías</option></select>
+      <select class="sel-in" id="f-origin" aria-label="Origen"><option value="all">Todos los orígenes</option>${ORIGINS.map(o=>`<option value="${o[0]}"${S.origin===o[0]?" selected":""}>${o[0]==="mine"?"Mías":o[0]==="claude"?"De Claude":esc(o[1])}</option>`).join("")}</select>
       ${(()=>{const tg=[...new Set(S.bets.flatMap(b=>b.tags||[]))].sort();return tg.length?`<select class="sel-in" id="f-tag" aria-label="Etiqueta"><option value="all">Todas las etiquetas</option>${tg.map(t=>`<option value="${esc(t)}"${S.tag===t?" selected":""}>#${esc(t)}</option>`).join("")}</select>`:""})()}
       <select class="sel-in" id="f-sort" aria-label="Ordenar"><option value="recent">Más recientes</option><option value="stake"${S.sort==="stake"?" selected":""}>Mayor stake</option><option value="odds"${S.sort==="odds"?" selected":""}>Mayor cuota</option><option value="result"${S.sort==="result"?" selected":""}>Mejor resultado</option></select>
     </div></div>
@@ -1059,7 +1062,11 @@ function renderApuestas(){
 }
 
 /* ---------- Análisis ---------- */
-function duel(bets){const c=stats(bets.filter(b=>b.origin==="claude")),m=stats(bets.filter(b=>b.origin!=="claude"));
+function originRank(bets){
+  const rows=ORIGINS.map(o=>[o,stats(bets.filter(b=>oKey(b)===o[0]))]).filter(([o,s])=>s.n||o[0]==="mine"||o[0]==="claude").sort((a,b)=>b[1].profit-a[1].profit);
+  return rows.map(([o,s])=>`<div class="vsrow"><span class="av ${o[0]==="claude"?"c":"m"}">${esc(o[2])}</span><div style="min-width:0"><div class="nm">${esc(o[1])}</div><div class="sub">${s.n} ${s.n===1?"boleto":"boletos"} · acierto ${pc0(s.hit)} · yield ${pct(s.yld)}</div></div><span class="pr ${cls(s.profit)}">${sgn(s.profit)}</span></div>`).join("")}
+const hasTips=bets=>bets.some(b=>oKey(b)==="elverde"||oKey(b)==="vicen");
+function duel(bets){const c=stats(bets.filter(b=>oKey(b)==="claude")),m=stats(bets.filter(b=>oKey(b)==="mine"));
   const row=(lab,a,b,fa,fb,scale,cmp=true)=>{const mx=scale||Math.max(Math.abs(a||0),Math.abs(b||0),1),wa=cmp&&a!=null&&b!=null&&a>b,wb=cmp&&a!=null&&b!=null&&b>a;
     return `<div class="drow"><div class="a"><span class="${wa?"win":""}">${fa}</span><span class="tr"><i style="width:${(Math.abs(a||0)/mx*100).toFixed(0)}%"></i></span></div><span class="lab">${lab}</span><div class="b"><span class="tr"><i style="width:${(Math.abs(b||0)/mx*100).toFixed(0)}%"></i></span><span class="${wb?"win":""}">${fb}</span></div></div>`};
   return `<div class="duel-head"><div class="who"><span class="av c">C</span>Claude</div><span class="vs">VS</span><div class="who right">Mías<span class="av m">M</span></div></div>
@@ -1165,7 +1172,7 @@ function conclusions(bets,st){const out=[];
   if(st.closed)out.push(st.profit>=0?`Vas en positivo: <b class="pos">${sgn(st.profit)}</b> con un yield del <b>${pct(st.yld)}</b> sobre ${eur(st.staked)} apostados.`:`Vas en negativo: <b class="neg">${sgn(st.profit)}</b> (yield ${pct(st.yld)}) sobre ${eur(st.staked)} apostados.`);
   else out.push("Todavía no hay boletos cerrados en este periodo, así que las conclusiones llegarán cuando se resuelvan.");
   if(st.selW+st.selL>=5&&st.hit!=null&&st.selHit-st.hit>15)out.push(`Aciertas el <b>${pc0(st.selHit)}</b> de las selecciones pero solo el <b>${pc0(st.hit)}</b> de los boletos: cada pata que añades reduce mucho la probabilidad de cobrar.`);
-  const c=stats(bets.filter(b=>b.origin==="claude")),m=stats(bets.filter(b=>b.origin!=="claude"));
+  const c=stats(bets.filter(b=>oKey(b)==="claude")),m=stats(bets.filter(b=>oKey(b)==="mine"));
   if(c.closed&&m.closed)out.push(c.profit>=m.profit?`Las apuestas de Claude rinden más que las tuyas (${sgn(c.profit)} frente a ${sgn(m.profit)}).`:`Tus apuestas rinden más que las de Claude (${sgn(m.profit)} frente a ${sgn(c.profit)}).`);
   const bk={};for(const b of bets){if(ret(b)==null)continue;(bk[b.book]=bk[b.book]||[]).push(b)}const bks=Object.entries(bk).map(([k,a])=>[k,stats(a)]).sort((a,b)=>b[1].profit-a[1].profit);
   if(bks.length>1)out.push(`Tu mejor casa en este periodo es <b>${esc(bks[0][0])}</b> (${sgn(bks[0][1].profit)}) y la peor, <b>${esc(bks[bks.length-1][0])}</b> (${sgn(bks[bks.length-1][1].profit)}).`);
@@ -1180,7 +1187,7 @@ async function askAI(){if(!S.sample||S.aiBusy)return;const bets=periodBets(),st=
   const grp=(f)=>{const g={};for(const b of bets){const k=f(b);(g[k]=g[k]||[]).push(b)}return Object.fromEntries(Object.entries(g).map(([k,a])=>{const s=stats(a);return[k,{boletos:s.n,beneficio:+s.profit.toFixed(2),yield:s.yld==null?null:+s.yld.toFixed(1),acierto:s.hit==null?null:Math.round(s.hit)}]}))};
   const comp={};for(const b of bets)for(const x of (b.selections||[])){if(x.result!=="won"&&x.result!=="lost")continue;const k=x.competition||"–";comp[k]=comp[k]||{acertadas:0,falladas:0};x.result==="won"?comp[k].acertadas++:comp[k].falladas++}
   const legs={};for(const b of bets){const n=(b.selections||[]).length||1,k=n<=1?"simple":n<=3?"2-3":n<=6?"4-6":n<=10?"7-10":"11+";(legs[k]=legs[k]||[]).push(b)}
-  const data={periodo:PLAB[S.period],boletos:st.n,cerrados:st.closed,en_juego:st.pend,apostado_cerrado:+st.staked.toFixed(2),cobrado:+st.returned.toFixed(2),beneficio:+st.profit.toFixed(2),yield_pct:st.yld==null?null:+st.yld.toFixed(1),acierto_boletos_pct:st.hit==null?null:Math.round(st.hit),acierto_selecciones_pct:st.selHit==null?null:Math.round(st.selHit),cuota_media:st.avgOdds==null?null:+st.avgOdds.toFixed(2),por_casa:grp(b=>b.book||"–"),por_origen:grp(b=>b.origin==="claude"?"Claude":"Mías"),por_num_selecciones:Object.fromEntries(Object.entries(legs).map(([k,a])=>{const s=stats(a);return[k,{boletos:s.n,acierto:s.hit==null?null:Math.round(s.hit),beneficio:+s.profit.toFixed(2)}]})),selecciones_por_competicion:comp,limite_mensual:S.settings.monthlyLimit||null};
+  const data={periodo:PLAB[S.period],boletos:st.n,cerrados:st.closed,en_juego:st.pend,apostado_cerrado:+st.staked.toFixed(2),cobrado:+st.returned.toFixed(2),beneficio:+st.profit.toFixed(2),yield_pct:st.yld==null?null:+st.yld.toFixed(1),acierto_boletos_pct:st.hit==null?null:Math.round(st.hit),acierto_selecciones_pct:st.selHit==null?null:Math.round(st.selHit),cuota_media:st.avgOdds==null?null:+st.avgOdds.toFixed(2),por_casa:grp(b=>b.book||"–"),por_origen:grp(b=>oName(oKey(b))),por_num_selecciones:Object.fromEntries(Object.entries(legs).map(([k,a])=>{const s=stats(a);return[k,{boletos:s.n,acierto:s.hit==null?null:Math.round(s.hit),beneficio:+s.profit.toFixed(2)}]})),selecciones_por_competicion:comp,limite_mensual:S.settings.monthlyLimit||null};
   const prompt="Eres un analista de apuestas deportivas serio y responsable. Este es el resumen de la libreta de apuestas de Miguel (datos reales, en euros). Escribe en español de España entre 4 y 6 viñetas breves (empieza cada una con \"• \"), sin títulos ni introducción: qué le está funcionando, qué no, un consejo concreto de gestión del dinero (stake, número de selecciones) y, si los datos son pocos, avisa de que la muestra es pequeña y hay mucha varianza. No prometas ganancias ni inventes datos que no estén aquí.\n\nDatos:\n"+JSON.stringify(data);
   S.aiBusy=true;S.aiErr=null;S.aiText="";render();
   try{const r=await S.sample(prompt,{onText:({text})=>{S.aiText=text;const el=$("ai-out");if(el)el.textContent=text}});S.aiText=r.text}
@@ -1247,7 +1254,7 @@ function renderInforme(){
   const res=[{v:st.won,color:"var(--won)",label:"Ganados"},{v:st.lost,color:"var(--lost)",label:"Perdidos"},{v:st.voids+st.co,color:"var(--void)",label:"Nulos o cash out"},{v:st.pend,color:"var(--accent)",label:"En juego"}];
   const bk={};for(const b of bets)bk[b.book||"–"]=(bk[b.book||"–"]||0)+(+b.stake||0);
   const books=Object.entries(bk).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({v,label:k,color:bkc(k),fmt:eur(v)}));
-  const c=stats(bets.filter(b=>b.origin==="claude")),m=stats(bets.filter(b=>b.origin!=="claude"));
+  const c=stats(bets.filter(b=>oKey(b)==="claude")),m=stats(bets.filter(b=>oKey(b)==="mine"));
   const vs=(av,nm,s)=>`<div class="vsrow">${av}<div style="min-width:0"><div class="nm">${nm}</div><div class="sub">${s.n} ${s.n===1?"boleto":"boletos"} · acierto ${pc0(s.hit)} · yield ${pct(s.yld)}</div></div><span class="pr ${cls(s.profit)}">${sgn(s.profit)}</span></div>`;
   return `<section class="rep-hero"><span class="eyebrow">Informe · ${esc(PLAB[S.period])}</span>
     <h2>Has jugado <span class="a">${st.n} ${st.n===1?"boleto":"boletos"}</span> y llevas <span class="${cls(st.profit)}">${sgn(st.profit)}</span>${st.pend?` con ${st.pend} ${st.pend===1?"boleto":"boletos"} todavía en juego`:""}.</h2>
@@ -1255,7 +1262,7 @@ function renderInforme(){
   <div class="grid g-3">
     <section class="card"><div class="card-h"><h2>Resultado de tus boletos</h2></div><div class="card-b">${donut(res,String(st.n),st.n===1?"boleto":"boletos")}</div></section>
     <section class="card"><div class="card-h"><h2>Dónde apuestas</h2><span class="aside">stake por casa</span></div><div class="card-b">${donut(books,fmt0.format(st.staked+st.pendStake),"apostado")}</div></section>
-    <section class="card"><div class="card-h"><h2>Claude contra mí</h2></div><div class="card-b" style="gap:0">${vs('<span class="av c">C</span>',"Claude",c)}${vs('<span class="av m">M</span>',"Mías",m)}</div></section>
+    <section class="card"><div class="card-h"><h2>${hasTips(bets)?"Quién acierta más":"Claude contra mí"}</h2></div><div class="card-b" style="gap:0">${hasTips(bets)?originRank(bets):vs('<span class="av c">C</span>',"Claude",c)+vs('<span class="av m">M</span>',"Mías",m)}</div></section>
   </div>
   <section class="card"><div class="card-h"><h2>Apostado frente a cobrado</h2><span class="aside">por ${fb.mode==="day"?"día":fb.mode==="week"?"semana":"mes"}</span></div><div class="card-b">${flowChart(fb)}</div></section>
   <div class="grid g-2">
@@ -1274,6 +1281,7 @@ function renderAnalisis(){
   const nb=[["Simple",n=>n<=1],["2 – 3",n=>n>=2&&n<=3],["4 – 6",n=>n>=4&&n<=6],["7 – 10",n=>n>=7&&n<=10],["11 o más",n=>n>=11]];
   const wd=b=>b.date?DIA3[new Date(b.date+"T12:00:00").getDay()]:"–";
   return `${killerCard(bets)}<div class="grid g-2">${clvCard(bets)}${tagCard(bets)}</div><div class="grid g-2">
+    ${hasTips(bets)?`<section class="card"><div class="card-h"><h2>Tipsters y fuentes</h2><span class="aside">ordenado por beneficio</span></div><div class="card-b" style="gap:0">${originRank(bets)}</div></section>`:""}
     <section class="card"><div class="card-h"><h2>Claude contra mí</h2><span class="aside">${bets.length} boletos en el periodo</span></div><div class="card-b">${duel(bets)}<p class="hint">Resaltado, quien va mejor en cada métrica. "Selecciones" cuenta cada pata de las combinadas por separado.</p></div></section>
     <section class="card"><div class="card-h"><h2>Beneficio por mes</h2><span class="aside">por fecha de cierre</span></div><div class="card-b">${monthly(bets)}</div></section>
   </div>
@@ -1571,7 +1579,7 @@ function drawerHTML(b){const sels=b.selections||[],r=ret(b),p=profitOf(b),conf=S
           <div class="sx-brand">${bk(b.book)}<b>${esc(b.book)}</b><span class="sx-no">Nº ${esc(String(b.id||"").slice(-8).toUpperCase())}</span></div>
           <span class="sx-stamp ${esc(b.status)}">${STATUS[b.status]}</span>
           <div class="sx-title">${esc(b.title||(sels[0]?sels[0].event:"Apuesta"))}</div>${b.oddsEstimated?'<span class="tagw" style="width:max-content">Cuota estimada · confírmala con el boleto en Editar</span>':""}
-          <div class="tk-meta"><span>${esc(dayLabel(b.date))}</span><span class="chip">${esc(b.type||"Simple")}${sels.length>1?" · "+sels.length+" sel.":""}</span><span class="chip${b.origin==="claude"?" c":""}">${b.origin==="claude"?"Claude":"Mía"}</span>${b.challengeId?`<span class="chip c">Reto · paso ${esc(b.stepN||"?")}</span>`:""}${b.freebet?'<span class="chip">Apuesta gratis</span>':""}${(b.tags||[]).map(t=>`<span class="chip">#${esc(t)}</span>`).join("")}</div></div>
+          <div class="tk-meta"><span>${esc(dayLabel(b.date))}</span><span class="chip">${esc(b.type||"Simple")}${sels.length>1?" · "+sels.length+" sel.":""}</span><span class="chip${oKey(b)!=="mine"?" c":""}">${esc(oName(oKey(b)))}</span>${b.challengeId?`<span class="chip c">Reto · paso ${esc(b.stepN||"?")}</span>`:""}${b.freebet?'<span class="chip">Apuesta gratis</span>':""}${(b.tags||[]).map(t=>`<span class="chip">#${esc(t)}</span>`).join("")}</div></div>
         <div class="sx-perf"></div>
         ${sels.length?`<ul class="sels">${sels.map((x,i)=>`<li class="${esc(x.result||"")}"><div><div class="e">${esc(x.event)}</div><div class="m">${x.sport?`<span class="sp">${esc(x.sport)}</span>`:""}${esc([x.competition,x.pick].filter(Boolean).join(" · "))}</div></div><span class="o">${odd(x.odds)}</span>
           <div class="rset" role="group" aria-label="Resultado de la selección"><button class="w" type="button" data-sel="${i}" data-v="won" aria-pressed="${x.result==="won"}">✓ Acertada</button><button class="l" type="button" data-sel="${i}" data-v="lost" aria-pressed="${x.result==="lost"}">✕ Fallada</button><button class="v" type="button" data-sel="${i}" data-v="void" aria-pressed="${x.result==="void"}">Nula</button><label class="cl">Cierre <input data-close-i="${i}" inputmode="decimal" value="${esc(dec(x.close))}" placeholder="–" aria-label="Cuota de cierre"></label>${+x.close&&+x.odds?`<span class="clv ${+x.odds>+x.close?"up":+x.odds<+x.close?"down":""}" title="Valor frente al cierre">CLV ${pct((x.odds/x.close-1)*100)}</span>`:""}</div></li>`).join("")}</ul>`:""}
@@ -1635,7 +1643,7 @@ async function exportCSV(){
   const q=v=>{const s=String(v??"");return /[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
   const lines=[["registro","id","fecha","fecha_cierre","casa","origen","tipo","estado","stake","cuota_total","cobrado","beneficio","n_selecciones","nombre","partido","competicion","deporte","pronostico","cuota_seleccion","resultado_seleccion","importe_movimiento","nota","booster_pct","apuesta_gratis"].join(";")];
   for(const b of S.bets.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""))){const sels=(b.selections&&b.selections.length)?b.selections:[{}];
-    for(const x of sels)lines.push(["apuesta",b.id,b.date,b.settled||"",b.book,b.origin==="claude"?"Claude":"Mía",b.type,STATUS[b.status],n(+b.stake),n(+b.odds),n(ret(b)),n(profitOf(b)),(b.selections||[]).length,b.title||"",x.event||"",x.competition||"",x.sport||"",x.pick||"",n(x.odds),x.result?(STATUS[x.result]||x.result):"","",b.notes||"",n(+b.boost||null),b.freebet?"Sí":"No"].map(q).join(";"))}
+    for(const x of sels)lines.push(["apuesta",b.id,b.date,b.settled||"",b.book,oName(oKey(b)),b.type,STATUS[b.status],n(+b.stake),n(+b.odds),n(ret(b)),n(profitOf(b)),(b.selections||[]).length,b.title||"",x.event||"",x.competition||"",x.sport||"",x.pick||"",n(x.odds),x.result?(STATUS[x.result]||x.result):"","",b.notes||"",n(+b.boost||null),b.freebet?"Sí":"No"].map(q).join(";"))}
   for(const m of S.moves)lines.push(["movimiento",m.id,m.date,"",m.book,"",m.kind==="deposit"?"Depósito":m.kind==="withdrawal"?"Retirada":"Bono","","","","","","","","","","","","","",n(m.kind==="withdrawal"?-m.amount:+m.amount),m.note||"","",""].map(q).join(";"));
   try{await S.dl.save({filename:"libreta-apuestas-"+today()+".csv",data:"﻿"+lines.join("\r\n")});toast("CSV exportado")}catch(e){if(!e||e.code!=="declined")toast("No se pudo exportar el archivo.",true)}}
 
@@ -1852,7 +1860,7 @@ Alanyaspor - Bingölspor | Gana Alanyaspor | 1,12"></textarea><div class="q-row"
           <div class="field"><label for="b-date">Fecha</label><input type="date" id="b-date" value="${esc(b.date)}"></div>
           <div class="field"><label for="b-book">Casa</label><select id="b-book">${opts(BOOKS.includes(b.book)?BOOKS:[b.book,...BOOKS],b.book)}</select></div>
           <div class="field"><label for="b-type">Tipo</label><select id="b-type">${opts(["Simple","Combinada","Sistema","Crear apuesta"],b.type)}</select></div>
-          <div class="field"><label>Origen</label>${segf("b-origin",[["mine","Mía"],["claude","Claude"]],b.origin==="claude"?"claude":"mine")}</div>
+          <div class="field"><label>Origen</label>${segf("b-origin",ORIGINS.map(o=>[o[0],o[1]]),oKey(b))}</div>
         </div>
         <div class="field"><label for="b-title">Nombre <span class="muted" style="font-weight:400">(opcional)</span></label><input id="b-title" value="${esc(b.title||"")}" placeholder="Combinada martes · copas y Euroliga"></div>
         <div class="field"><label for="b-tags">Etiquetas <span class="muted" style="font-weight:400">(separadas por comas)</span></label><input id="b-tags" value="${esc((b.tags||[]).join(", "))}" placeholder="copas, valor, corazonada"></div></div>
